@@ -13,3 +13,5 @@ web/tsconfig.tsbuildinfo
 .claude/
 .taste-skill/
 *.tgz
+deploy-credentials.txt
+.env.bak
