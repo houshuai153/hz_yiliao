@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+data/
+*.egg-info/
+
+# 本机工具与构建产物
+web/node_modules/
+web/dist/
+web/tsconfig.tsbuildinfo
+.claude/
+.taste-skill/
+*.tgz

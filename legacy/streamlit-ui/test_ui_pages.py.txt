@@ -1,0 +1,237 @@
+"""阶段 5：用 Streamlit AppTest 在真实本地 API 上渲染每个页面（含看板读取 API）。"""
+from datetime import date
+
+import pytest
+from streamlit.testing.v1 import AppTest
+
+from app.settings import ROOT
+
+UI = ROOT / "ui"
+PAGES = {
+    "home": UI / "Home.py",
+    "dashboard": UI / "pages" / "1_项目看板.py",
+    "qa": UI / "pages" / "2_法规与SOP问答.py",
+    "translate": UI / "pages" / "3_翻译与术语核对.py",
+    "report": UI / "pages" / "4_报告草稿.py",
+}
+
+
+def run_page(name: str) -> AppTest:
+    at = AppTest.from_file(str(PAGES[name]), default_timeout=60)
+    return at.run()
+
+
+def texts(elements) -> str:
+    return "\n".join(str(e.value) for e in elements)
+
+
+def test_every_page_renders_without_exception(ui_env):
+    for name in PAGES:
+        at = run_page(name)
+        assert not at.exception, (name, [e.value for e in at.exception])
+        assert "模拟数据" in texts(at.markdown), name                       # 每页都有（紧凑的）模拟数据提示
+
+
+def test_home_reads_health_from_api(ui_env):
+    at = run_page("home")
+    assert any("API 在线" in c.value and "offline=True" in c.value for c in at.caption)
+    assert not any("请求失败" in e.value or "无法连接" in e.value for e in at.error)   # 工作台会把高风险提示显示为 error，这里只排除 API 错误
+    assert any("RISK-" in e.value for e in at.error)
+    labels = {m.label for m in at.metric}
+    assert {"分析批完成进度", "未关闭偏差（重要及以上）", "高风险提示", "待处理的报告草稿"} <= labels   # 工作台关键状态
+
+
+def test_home_shows_error_when_api_unreachable(monkeypatch):
+    from app.settings import get_settings
+    monkeypatch.setenv("API_BASE_URL", "http://127.0.0.1:9")      # 无服务监听；回环地址，不涉及外网
+    monkeypatch.setenv("API_TOKEN", "test-token")
+    get_settings.cache_clear()
+    try:
+        at = run_page("home")
+        assert not at.exception
+        assert any("无法连接 API" in e.value for e in at.error)
+    finally:
+        get_settings.cache_clear()
+
+
+def test_dashboard_reads_api_and_shows_planted_data(ui_env):
+    at = AppTest.from_file(str(PAGES["dashboard"]), default_timeout=60).run()
+    at.date_input[0].set_value(date(2026, 10, 23)).run()              # 固定统计日期，避免随时钟漂移
+    assert not at.exception, [e.value for e in at.exception]
+    metrics = {m.label: m.value for m in at.metric}
+    assert metrics["项目数"] == "3"
+    assert metrics["分析批完成进度"] == "58.3%（7/12）"
+    assert metrics["样本数（有效 / 总）"].endswith("/ 413")
+    assert metrics["未关闭偏差（重要及以上）"] == "3（2）"
+    assert metrics["高风险提示"] == "5"
+    # 项目汇总表 3 行；当前选中项目为第一个（PRJ-BIO-002）
+    summary = next(d.value for d in at.dataframe if "完成进度" in d.value.columns)    # 项目汇总表（页签内）
+    assert list(summary["项目"]) == ["PRJ-BIO-002", "PRJ-SM-001", "PRJ-SM-003"]
+    assert list(summary["完成进度"]) == ["60.0%（3/5）", "66.7%（2/3）", "50.0%（2/4）"]
+    assert "RISK-ISR-FAIL" in texts(at.error)
+
+    at.selectbox[0].set_value("PRJ-SM-003").run()                     # 切换项目 -> 重新读取 API
+    assert not at.exception
+    errs = texts(at.error)
+    assert "RISK-QC-FAIL" in errs and "RISK-OPEN-MAJOR-DEV" in errs
+    assert "RISK-PENDING-REVIEW" in texts(at.warning)
+    m2 = {m.label: m.value for m in at.metric}
+    assert m2["QC 通过率"] == "66.7%（2/3）" and m2["批接受通过率"] == "50.0%（1/2）"
+
+    at.selectbox(key="run_pick").set_value("PRJ-SM-003-R03").run()    # 分析批明细（页签内）
+    assert not at.exception
+    run_df = at.dataframe[-3].value                                   # 校准点页签
+    assert "unknown" in set(run_df["status"]) and run_df["back_calc_conc"].isna().sum() == 2
+
+
+def _figs(at):
+    import json
+    return [json.loads(e.proto.spec) for e in at.get("plotly_chart")]
+
+
+def test_dashboard_charts_show_api_data(ui_env):
+    at = AppTest.from_file(str(PAGES["dashboard"]), default_timeout=60).run()
+    assert not at.exception, [e.value for e in at.exception]
+    progress, timeline, donut = _figs(at)                              # 阅读顺序：项目对比 -> 时间变化 -> 样本构成
+    bars = {t["name"]: dict(zip(t["y"], t["x"])) for t in progress["data"] if t["type"] == "bar"}
+    assert bars["✓ 已完成"] == {"PRJ-BIO-002": 3, "PRJ-SM-001": 2, "PRJ-SM-003": 2}
+    assert bars["! 复核中"] == {"PRJ-BIO-002": 0, "PRJ-SM-001": 1, "PRJ-SM-003": 1}
+    assert bars["… 进行中"] == {"PRJ-BIO-002": 1, "PRJ-SM-001": 0, "PRJ-SM-003": 0}
+    planned = next(t for t in progress["data"] if t["name"] == "◆ 计划批数")
+    assert dict(zip(planned["y"], planned["x"])) == {"PRJ-BIO-002": 5, "PRJ-SM-001": 3, "PRJ-SM-003": 4}
+    line = next(t for t in timeline["data"] if t["name"] == "累计分析批数")   # 选中项目 PRJ-BIO-002：真实日期，不补点
+    assert line["x"] == ["2026-07-07", "2026-07-14", "2026-07-21", "2026-10-12"] and line["y"] == [1, 2, 3, 4]
+    assert line["line"]["shape"] == "hv"
+    pie = donut["data"][0]
+    assert dict(zip(pie["labels"], pie["values"])) == {"正常（ok）：118": 118, "低于定量下限（BLQ）：41": 41, "需重分析（reanalysis）：7": 7}
+    assert any("统计口径" in m.value and "不代表历史上某日的完成情况" in m.value for m in at.caption)
+    sample_df = next(d.value for d in at.dataframe if "占比" in d.value.columns)
+    assert list(sample_df["结果"])[-1] == "缺失（missing）" and list(sample_df["数量"])[-1] == 0      # 零数量类别在表中仍可见
+
+    at.selectbox(key="proj_pick").set_value("PRJ-SM-003").run()           # 选择项目 -> 图表与下方表格同步
+    _, timeline2, donut2 = _figs(at)
+    assert dict(zip(donut2["data"][0]["labels"], donut2["data"][0]["values"]))["正常（ok）：105"] == 105
+    assert next(t for t in timeline2["data"] if t["name"] == "累计分析批数")["x"] == ["2026-08-18", "2026-09-01", "2026-09-08"]
+    assert any("RISK-QC-FAIL" in e.value for e in at.error)
+
+    at.get("segmented_control")[0].set_value("所选项目分析批明细").run()    # 切换为分析批明细
+    assert not at.exception
+    runs_fig = _figs(at)[0]
+    assert {t["name"] for t in runs_fig["data"]} == {"✓ 已完成", "! 复核中"}
+
+
+def test_dashboard_charts_api_failure_keeps_tables(ui_env, monkeypatch):
+    import api_client                                   # ui 目录已被页面脚本加入 sys.path
+    real = api_client.call
+
+    def flaky(method, path, **kw):
+        if path == "/api/dashboard/charts":
+            return False, {"status": 500, "detail": "boom"}
+        return real(method, path, **kw)
+    monkeypatch.setattr(api_client, "call", flaky)
+    at = AppTest.from_file(str(PAGES["dashboard"]), default_timeout=60).run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert any("图表数据加载失败" in w.value for w in at.warning) and len(at.get("plotly_chart")) == 0
+    assert any("项目" in d.value.columns for d in at.dataframe)
+
+
+def test_dashboard_zero_denominator_rendering(ui_env, app):
+    """分母为零时页面显示“—（原因）”，而不是 0% 或报错。"""
+    from tests.dashboard.test_dashboard_api import Project  # noqa: F401
+    with app.state.session_factory() as s:
+        s.add(Project(id="PRJ-ZERO-001", title="零分母（模拟）", modality="small_molecule", analyte="DEMO-Z",
+                      matrix="人血浆", method_type="LC-MS/MS", unit="ng/mL", lloq=1.0, uloq=10.0,
+                      phase="sample_analysis", planned_run_count=0, is_simulated=True))
+        s.commit()
+    try:
+        at = AppTest.from_file(str(PAGES["dashboard"]), default_timeout=60).run()
+        at.selectbox[0].set_value("PRJ-ZERO-001").run()
+        assert not at.exception, [e.value for e in at.exception]
+        m = {x.label: x.value for x in at.metric}
+        assert m["完成进度"] == "—（未设置计划分析批数）" and m["QC 通过率"] == "—（暂无已判定分析批）"
+        assert "RISK-NO-PLAN" in texts(at.info)
+        assert "该项目还没有待测样品结果" in texts(at.info) and "没有可绘制的分析批日期" in texts(at.info)   # 空状态，不画 100% 圆环
+        assert len(at.get("plotly_chart")) == 1                                                       # 只剩进度对比图
+    finally:
+        with app.state.session_factory() as s:
+            s.delete(s.get(Project, "PRJ-ZERO-001"))
+            s.commit()
+
+
+def test_qa_page_answers_and_refuses(ui_env):
+    at = AppTest.from_file(str(PAGES["qa"]), default_timeout=60).run()
+    at.text_input[0].set_value("偏差在什么条件下可以关闭")
+    at.button[0].click().run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert "DEMO-SOP-DEV-004" in texts(at.markdown) and not at.warning      # 作答时没有拒答警示
+    assert any("不是答案正确的概率" in c.value for c in at.caption)
+    cites = at.dataframe[0].value
+    assert "DEMO-SOP-DEV-004" in set(cites["章节 ID"]) and set(cites["性质"]) <= {"教学演示摘要（非监管原文）", "模拟内部 SOP（无合规效力）"}
+
+    at.text_input[0].set_value("请给出 ICH M10 第 7.3.2 条的原文")
+    at.button[0].click().run()
+    assert any("已拒答（clause_fabrication_risk）" in w.value for w in at.warning)
+    assert len(at.dataframe) == 0
+
+
+def test_translate_page(ui_env):
+    at = AppTest.from_file(str(PAGES["translate"]), default_timeout=60).run()
+    at.text_area[0].set_value("共分析42份研究样品。\n该化合物在大鼠体内的半衰期约为4小时。")
+    at.button[0].click().run()
+    assert not at.exception, [e.value for e in at.exception]
+    md = texts(at.markdown)
+    assert "A total of 42 study samples were analyzed." in md
+    assert "— （未生成）" in md                                       # 未知句型不伪装译文
+    assert any("UNSUPPORTED_PATTERN" in w.value for w in at.warning)
+
+
+def _button(at, label):
+    return next(b for b in at.button if b.label == label)
+
+
+def _tick_and_approve(at, did, missing):
+    for k in ("facts_checked", "verdicts_untouched", "not_formal_approval"):
+        at.checkbox(key=f"cf_{did}_{k}").check()
+    at.text_area(key=f"opinion_{did}").set_value("UI 测试：已逐项核对")
+    for f in missing:
+        at.text_input(key=f"ack_{did}_{f}").set_value("保留待补充，待业务提供记录")
+    return at.run()
+
+
+def test_report_page_full_review_flow(ui_env):
+    """生成 -> 不能导出 -> 填操作人 -> 审核 -> 通过 -> 才出现导出；刷新（新会话 + query 参数）后仍在原草稿。"""
+    at = AppTest.from_file(str(PAGES["report"]), default_timeout=90).run()
+    at.selectbox[0].set_value("PRJ-SM-003").run()
+    _button(at, "生成草稿").click().run()
+    assert not at.exception, [e.value for e in at.exception]
+    did = at.session_state["draft_pick"]
+    assert did.startswith("DRAFT-") and any(s.value.startswith(f"已生成 {did}") and "状态：待审核" in s.value for s in at.success)
+    assert any("仪器型号与色谱柱" in w.value for w in at.warning)               # 种子里该项目仪器信息缺失
+    assert len(at.get("download_button")) == 0 and not [b for b in at.button if "导出" in b.label]   # 草稿阶段没有导出入口
+    assert _button(at, "开始审核").disabled                                      # 没填操作人，审核操作不可用
+
+    at.text_input(key="operator").set_value("reviewer-ui").run()
+    _button(at, "开始审核").click().run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert any("已开始审核" in s.value for s in at.success)
+    assert any("审核意见" in t.label for t in at.text_area)
+
+    at2 = AppTest.from_file(str(PAGES["report"]), default_timeout=90)           # 模拟刷新：新会话，只靠 URL 参数 + 服务端状态
+    at2.query_params["draft"] = did
+    at2.run()
+    assert at2.session_state["draft_pick"] == did and any("审核意见" in t.label for t in at2.text_area)
+    at2.text_input(key="operator").set_value("reviewer-ui").run()
+
+    missing = [t.key.split("_", 2)[2] for t in at2.text_input if t.key and t.key.startswith(f"ack_{did}_")]
+    assert missing                                                                # 缺失字段须逐项填写处理说明
+    _button(at2, "审核通过").click().run()                                         # 什么都没填：被后端拒绝，状态不变
+    assert any("请填写审核意见" in e.value for e in at2.error)
+    at2 = _tick_and_approve(at2, did, missing)
+    _button(at2, "审核通过").click().run()
+    assert not at2.exception, [e.value for e in at2.exception]
+    assert any("审核通过" in s.value for s in at2.success)
+    assert len(at2.get("download_button")) == 0                                  # 通过后还需显式“生成导出文件”（写入导出记录）
+    _button(at2, "生成导出文件").click().run()
+    assert len(at2.get("download_button")) == 1
+
+

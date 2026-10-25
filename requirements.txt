@@ -1,0 +1,12 @@
+# 运行依赖（顶层包固定到已验证的版本；传递依赖由 pip 解析）。
+# 离线说明：这些包只在“首次安装 / 构建镜像”时联网下载；安装完成后运行、测试、检索、生成全部离线。
+fastapi==0.161.1
+uvicorn==0.54.0
+pydantic==2.14.1
+pydantic-settings==2.16.1
+SQLAlchemy==2.1.6
+PyYAML==6.0.3
+requests==2.34.2
+numpy==2.5.4
+python-docx==1.2.0
+psycopg[binary]==3.3.6

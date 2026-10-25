@@ -1,0 +1,59 @@
+# 生物分析术语表（演示配置）
+#
+# 重要：这是为原型演示自编的术语表，译法与“禁用译法”均未经任何机构或业务专家审定，
+# 不是官方术语标准。上线前须由业务/QA 审定。字段说明：
+#   id            唯一标识
+#   zh / en       推荐中文 / 推荐英文（英文为完整短语）
+#   abbr          缩写（需保持原有大小写；长度>=3 的缩写会做大小写不一致检查）
+#   category      可选，句型槽位按类别取词（如 matrix）
+#   forbidden_en  不应作为 zh→en 译法出现的英文（常见误译 / 易混概念）
+#   forbidden_zh  不应作为 en→zh 译法出现的中文
+#   ambiguity_note 术语多义时的核对提示
+version: 1
+disclaimer: 演示术语表，译法未经业务审定，仅供原型演示。
+terms:
+  - {id: calibration_curve, zh: 校准曲线, en: calibration curve, forbidden_en: [correction curve, adjustment curve], forbidden_zh: [修正曲线]}
+  - {id: calibration_standard, zh: 校准标样, en: calibration standard, forbidden_en: [correction standard]}
+  - {id: lloq, zh: 定量下限, en: lower limit of quantification, abbr: LLOQ, forbidden_en: [lower limit of detection, detection limit], forbidden_zh: [检测限, 检测下限]}
+  - {id: uloq, zh: 定量上限, en: upper limit of quantification, abbr: ULOQ, forbidden_en: [upper limit of detection], forbidden_zh: [检测上限]}
+  - {id: blq, zh: 低于定量下限, en: below the lower limit of quantification, abbr: BLQ}
+  - {id: quantification_range, zh: 定量范围, en: quantification range}
+  - {id: qc_sample, zh: 质控样品, en: quality control (QC) sample, forbidden_en: [quality check sample, quality check], forbidden_zh: [质量检查样品]}
+  - {id: qc, zh: 质控, en: quality control, abbr: QC}
+  - {id: lqc, zh: 低浓度质控, en: low quality control, abbr: LQC}
+  - {id: mqc, zh: 中浓度质控, en: medium quality control, abbr: MQC}
+  - {id: hqc, zh: 高浓度质控, en: high quality control, abbr: HQC}
+  - {id: isr, zh: 已测样品再分析, en: incurred sample reanalysis, abbr: ISR, forbidden_en: [tested sample reanalysis, repeat sample analysis], forbidden_zh: [已检测样品重复分析]}
+  - {id: reanalysis, zh: 再分析, en: reanalysis}
+  - {id: analytical_run, zh: 分析批, en: analytical run, forbidden_en: [analytical lot, analysis lot]}
+  - {id: matrix_effect, zh: 基质效应, en: matrix effect, forbidden_en: [substrate effect]}
+  - {id: blank_matrix, zh: 空白基质, en: blank matrix}
+  - {id: internal_standard, zh: 内标, en: internal standard, abbr: IS}
+  - {id: selectivity, zh: 选择性, en: selectivity}
+  - {id: specificity, zh: 特异性, en: specificity}
+  - {id: accuracy, zh: 准确度, en: accuracy, forbidden_en: [correctness]}
+  - {id: precision, zh: 精密度, en: precision, forbidden_en: [preciseness]}
+  - {id: stability, zh: 稳定性, en: stability}
+  - {id: freeze_thaw, zh: 冻融稳定性, en: freeze-thaw stability}
+  - {id: carryover, zh: 残留, en: carry-over, forbidden_en: [residue, residual], ambiguity_note: 色谱语境下“残留”指进样残留（carry-over）；其他语境请核对}
+  - {id: dilution_integrity, zh: 稀释完整性, en: dilution integrity}
+  - {id: relative_error, zh: 相对偏差, en: relative error, abbr: RE}
+  - id: deviation
+    zh: 偏差
+    en: deviation
+    ambiguity_note: “偏差”在方案/流程语境下为 deviation；在准确度语境下指相对偏差（relative error / bias），请核对上下文。
+  - {id: cv, zh: 变异系数, en: coefficient of variation, abbr: CV}
+  - {id: back_calculated, zh: 回算浓度, en: back-calculated concentration}
+  - {id: concentration_level, zh: 浓度水平, en: concentration level}
+  - {id: lba, zh: 配体结合分析, en: ligand binding assay, abbr: LBA}
+  - {id: lcmsms, zh: 液相色谱-串联质谱, en: liquid chromatography-tandem mass spectrometry, abbr: LC-MS/MS}
+  - {id: method_validation, zh: 方法验证, en: method validation, forbidden_en: [method verification], forbidden_zh: [方法确认]}
+  - {id: study_sample, zh: 研究样品, en: study sample, forbidden_en: [research sample]}
+  - {id: sample_analysis, zh: 样品分析, en: sample analysis}
+  - {id: study_director, zh: 专题负责人, en: study director, forbidden_en: [topic leader, subject leader]}
+  - {id: qa, zh: 质量保证, en: quality assurance, abbr: QA}
+  - {id: raw_data, zh: 原始数据, en: raw data}
+  - {id: acceptance_criteria, zh: 接受标准, en: acceptance criteria, forbidden_en: [acceptance standard]}
+  - {id: human_plasma, zh: 人血浆, en: human plasma, category: matrix}
+  - {id: human_serum, zh: 人血清, en: human serum, category: matrix}
+  - {id: rat_plasma, zh: 大鼠血浆, en: rat plasma, category: matrix}

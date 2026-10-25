@@ -1,0 +1,24 @@
+{
+  "_note": "阶段 6 固定评测集（翻译与术语核对）。5 例：术语命中、缩写保留、冲突警告（禁用译法）、缩写大小写、未知句型。期望由人工在运行评测之前指定，之后不得为通过评测而修改。",
+  "cases": [
+    {"id": "tr-01", "description": "中译英，支持句型，术语命中且缩写 HQC / 数值 / 符号原样保留",
+     "text": "HQC质控样品的准确度在±15%以内。", "direction": "zh2en",
+     "expect": {"status": "translated", "target": "The accuracy of HQC quality control (QC) samples was within ±15%.",
+                "term_ids": ["hqc", "qc_sample", "accuracy"], "warning_codes": []}},
+    {"id": "tr-02", "description": "英译中，支持句型，缩写 ISR 保留",
+     "text": "The pass rate of incurred sample reanalysis (ISR) was 83.3%.", "direction": "en2zh",
+     "expect": {"status": "translated", "target": "已测样品再分析（ISR）的合格比例为83.3%。",
+                "term_ids": ["isr"], "warning_codes": []}},
+    {"id": "tr-03", "description": "未知句型：不得生成译文，必须给出不支持警告，但仍提供术语对照",
+     "text": "该化合物在大鼠体内的半衰期约为4小时。", "direction": "zh2en",
+     "expect": {"status": "unsupported", "target_null": true, "term_ids": [], "warning_codes": ["UNSUPPORTED_PATTERN"]}},
+    {"id": "tr-04", "description": "核对现成译文：把“定量下限”译成 lower limit of detection（禁用 / 易混译法）",
+     "text": "本方法的定量下限为0.5 ng/mL。", "direction": "zh2en",
+     "reference": "The lower limit of detection of this method is 0.5 ng/mL.",
+     "expect": {"status": "checked", "term_ids": ["lloq"], "warning_codes": ["FORBIDDEN_VARIANT", "TERM_MISSING"]}},
+    {"id": "tr-05", "description": "核对现成译文：缩写 LLOQ 被写成小写",
+     "text": "本方法的定量下限（LLOQ）为0.5 ng/mL。", "direction": "zh2en",
+     "reference": "The lloq of this method is 0.5 ng/mL.",
+     "expect": {"status": "checked", "term_ids": ["lloq"], "warning_codes": ["ABBR_CASE"]}}
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "_note": "阶段 6 固定评测集（报告来源覆盖与缺失值）。每例在全新的模拟种子库上生成 DOCX，只依据生成的 DOCX 文件和对数据库的独立查询评判。期望由人工在运行评测之前指定，之后不得为通过评测而修改。",
+  "cases": [
+    {"id": "rp-01", "description": "方案信息齐全的项目：无缺失字段，全部业务数字有来源",
+     "project_id": "PRJ-SM-001", "kind": "validation", "run_ids": [],
+     "expect": {"missing_fields": []}},
+    {"id": "rp-02", "description": "种子中自然缺失：SM-003 的仪器信息、R03 两个校准点回算浓度缺失",
+     "project_id": "PRJ-SM-003", "kind": "sample_analysis", "run_ids": [],
+     "expect": {"missing_fields": ["PRJ-SM-003-R03 校准点回算浓度（2 处）", "仪器型号与色谱柱"],
+                "placeholder_counts": {"[待补充: 回算浓度]": 2, "[待补充: 仪器型号与色谱柱]": 3}}},
+    {"id": "rp-03", "description": "LBA 项目含进行中批：不使用内标不得占位；进行中批进入复核清单而不计入统计",
+     "project_id": "PRJ-BIO-002", "kind": "sample_analysis", "run_ids": [],
+     "expect": {"missing_fields": [], "absent_text": ["[待补充: 内标名称]"],
+                "present_text": ["本方法为配体结合分析，不使用内标。", "分析批 PRJ-BIO-002-R04 尚未完成"]}},
+    {"id": "rp-04", "description": "人为制造缺值：PRJ-SM-001-R01 的 HQC 测得值全部置空，不得补造数值，且判定不得为通过",
+     "project_id": "PRJ-SM-001", "kind": "sample_analysis", "run_ids": ["PRJ-SM-001-R01"],
+     "mutation": {"null_qc": {"run_id": "PRJ-SM-001-R01", "level": "HQC"}},
+     "expect": {"missing_fields": ["PRJ-SM-001-R01 QC 测得浓度（3 处）", "PRJ-SM-001-R01 HQC 水平 QC 平均相对偏差"],
+                "placeholder_counts": {"[待补充: PRJ-SM-001-R01 HQC 水平 QC 平均相对偏差]": 3},
+                "paragraph_must_contain": {"startswith": "分析批 PRJ-SM-001-R01 共 12 个 QC 样品", "contains": ["判定：待复核"]}}}
+  ]
+}

@@ -1,0 +1,22 @@
+# HTTPS + 口令保护的反向代理。
+# - DOMAIN 为公网域名时，Caddy 会自动申请并续期证书（需要服务器可以访问证书机构，即 80/443 对公网开放）；
+#   DOMAIN=localhost（默认）时使用 Caddy 内置的本地 CA 签发自签证书，仅供本机演示。
+# - 全站代理到 api（同源托管 React 前端与 /api）；浏览器端另有应用内会话登录。basic auth 是外层的额外一道门，
+#   浏览器随它发出的 Authorization: Basic 头会被 API 忽略（API 只认 Bearer 令牌或会话 Cookie）。
+{$DOMAIN:localhost} {
+	encode gzip
+
+	basicauth {
+		{$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+
+	reverse_proxy api:8000
+}

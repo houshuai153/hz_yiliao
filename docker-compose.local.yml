@@ -1,0 +1,8 @@
+# 本机端口被占用时的覆盖文件：把对外端口改为 8080(HTTP) / 8443(HTTPS)。
+# 用法：docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
+# 访问：https://localhost:8443  （Caddy 本地自签证书，浏览器会提示不受信任，属正常）
+services:
+  proxy:
+    ports: !override
+      - "127.0.0.1:8080:80"
+      - "127.0.0.1:8443:443"

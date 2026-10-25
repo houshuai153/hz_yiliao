@@ -1,0 +1,51 @@
+# 受支持句型（离线规则翻译只处理这些句型）
+#
+# 每个句型含若干中文模板和英文模板；中译英用第一个英文模板输出，英译中用第一个中文模板输出。
+# 槽位语法 {名称:类型}，类型：NUM 数字、INT 整数、PCT 百分数(可带±)、UNIT 浓度单位、
+# ID 项目/批编号、LV 质控水平(LLOQ/LQC/MQC/HQC/ULOQ)、NAME 名称、TERM.<category> 术语表中该类别的术语。
+# 槽位内容（数字、单位、编号、水平缩写）原样复制，不做翻译，因此大小写和数值保持不变。
+# 不在此列表中的句子，系统不会翻译，而是返回“不支持的句型”警告。
+version: 1
+patterns:
+  - id: P-LLOQ
+    zh: ["本方法的定量下限（LLOQ）为{n:NUM} {u:UNIT}。", "本方法的定量下限为{n:NUM} {u:UNIT}。"]
+    en: ["The lower limit of quantification (LLOQ) of this method is {n:NUM} {u:UNIT}.", "The LLOQ of this method is {n:NUM} {u:UNIT}."]
+  - id: P-RANGE
+    zh: ["校准曲线的浓度范围为{a:NUM}至{b:NUM} {u:UNIT}。"]
+    en: ["The calibration curve ranged from {a:NUM} to {b:NUM} {u:UNIT}."]
+  - id: P-CAL-LEVELS
+    zh: ["校准曲线包含{k:INT}个非零浓度水平。"]
+    en: ["The calibration curve contained {k:INT} non-zero concentration levels."]
+  - id: P-QC-ACC
+    zh: ["{lv:LV}质控样品的准确度在{p:PCT}以内。"]
+    en: ["The accuracy of {lv:LV} quality control (QC) samples was within {p:PCT}."]
+  - id: P-RUN-PASS
+    zh: ["分析批{id:ID}符合接受标准。", "分析批{id:ID}通过接受标准。"]
+    en: ["Analytical run {id:ID} met the acceptance criteria."]
+  - id: P-RUN-FAIL
+    zh: ["分析批{id:ID}不符合接受标准。", "分析批{id:ID}未通过接受标准。"]
+    en: ["Analytical run {id:ID} did not meet the acceptance criteria."]
+  - id: P-ISR-RATE
+    zh: ["已测样品再分析（ISR）的合格比例为{p:PCT}。"]
+    en: ["The pass rate of incurred sample reanalysis (ISR) was {p:PCT}."]
+  - id: P-PRECISION
+    zh: ["批内精密度（CV）不超过{p:PCT}。"]
+    en: ["The intra-run precision (CV) was no more than {p:PCT}."]
+  - id: P-N-SAMPLES
+    zh: ["共分析{n:INT}份研究样品。"]
+    en: ["A total of {n:INT} study samples were analyzed."]
+  - id: P-OPEN-DEV
+    zh: ["本批未关闭的偏差为{n:INT}项。"]
+    en: ["There were {n:INT} open deviations in this run."]
+  - id: P-DEV-CLOSED
+    zh: ["该偏差已关闭。"]
+    en: ["The deviation has been closed."]
+  - id: P-MATRIX
+    zh: ["本方法的分析基质为{m:TERM.matrix}。"]
+    en: ["The matrix of this method is {m:TERM.matrix}."]
+  - id: P-IS
+    zh: ["内标为{name:NAME}。"]
+    en: ["The internal standard (IS) is {name:NAME}."]
+  - id: P-DRAFT
+    zh: ["本报告为AI辅助草稿，需人工复核。"]
+    en: ["This report is an AI-assisted draft and requires manual review."]

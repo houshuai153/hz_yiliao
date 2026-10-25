@@ -1,0 +1,550 @@
+{
+  "offline": true,
+  "suites": {
+    "regulatory": {
+      "passed": true,
+      "n_cases": 10,
+      "metrics": [
+        {
+          "name": "answerable_hit_rate",
+          "value": 0.857143,
+          "numerator": 6,
+          "denominator": 7,
+          "op": ">=",
+          "threshold": 0.8,
+          "gate": true,
+          "passed": true,
+          "formula": "应作答的题中，(未拒答 且 引用中至少含一个期望章节) 的题数 / 应作答题数"
+        },
+        {
+          "name": "false_refusal_rate",
+          "value": 0.142857,
+          "numerator": 1,
+          "denominator": 7,
+          "op": "<=",
+          "threshold": 0.15,
+          "gate": true,
+          "passed": true,
+          "formula": "应作答的题中被拒答的题数 / 应作答题数"
+        },
+        {
+          "name": "refusal_recall",
+          "value": 1.0,
+          "numerator": 3,
+          "denominator": 3,
+          "op": ">=",
+          "threshold": 1.0,
+          "gate": true,
+          "passed": true,
+          "formula": "应拒答的题中，实际拒答（且若指定了 expect_reason 则原因一致）的题数 / 应拒答题数"
+        },
+        {
+          "name": "citation_validity",
+          "value": 1.0,
+          "numerator": 12,
+          "denominator": 12,
+          "op": ">=",
+          "threshold": 1.0,
+          "gate": true,
+          "passed": true,
+          "formula": "所有作答返回的引用中，quote 为知识库章节原文子串、元数据与库一致且 is_demo=true 的条数 / 引用总条数（无引用则判 0）"
+        },
+        {
+          "name": "demo_labeling_rate",
+          "value": 1.0,
+          "numerator": 6,
+          "denominator": 6,
+          "op": ">=",
+          "threshold": 1.0,
+          "gate": true,
+          "passed": true,
+          "formula": "作答的题中，答案含“非监管机构原文”声明 且 每条引用均带演示性质标签的题数 / 作答题数"
+        },
+        {
+          "name": "citation_precision",
+          "value": 0.833333,
+          "numerator": 10,
+          "denominator": 12,
+          "op": ">=",
+          "threshold": 0.4,
+          "gate": false,
+          "passed": true,
+          "formula": "应作答题的全部引用里，属于期望章节的条数 / 引用总条数（信息性指标；期望章节是窄集合，偏保守）"
+        }
+      ],
+      "cases": [
+        {
+          "id": "reg-01",
+          "question": "色谱方法的校准曲线回算偏差有什么演示要求",
+          "kind": "answerable",
+          "refused": false,
+          "refusal_reason": null,
+          "confidence": 0.8304,
+          "cited_sections": [
+            "DEMO-M10-002",
+            "DEMO-M10-002",
+            "DEMO-CHP9012-003"
+          ],
+          "expect_sections": [
+            "DEMO-CHP9012-003",
+            "DEMO-M10-002"
+          ],
+          "passed": true,
+          "answer_preview": "• 校准曲线由空白样品、零浓度样品和一组非零浓度的校准标样组成。【DEMO-M10-002】\n• 色谱方法的演示阈值：各校准点回算浓度与标示浓度的相对偏差在 ±15% 以内，LLOQ 点放宽至 ±20%；【DEMO-M10-002】\n• 演"
+        },
+        {
+          "id": "reg-02",
+          "question": "ISR 不达标要如何处理",
+          "kind": "answerable",
+          "refused": false,
+          "refusal_reason": null,
+          "confidence": 0.8666,
+          "cited_sections": [
+            "DEMO-SOP-ISR-004",
+            "DEMO-M10-008"
+          ],
+          "expect_sections": [
+            "DEMO-M10-008",
+            "DEMO-SOP-ISR-004"
+          ],
+          "passed": true,
+          "answer_preview": "• ISR 不达标应在当日记录偏差，调查原因（如样品不均一、稳定性、分析过程问题），评估对该项目全部研究样品结果的影响。【DEMO-SOP-ISR-004】\n• ISR 不达标时应启动调查。【DEMO-M10-008】\n\n以上内容均摘自本地"
+        },
+        {
+          "id": "reg-03",
+          "question": "偏差分为哪几级",
+          "kind": "answerable",
+          "refused": true,
+          "refusal_reason": "out_of_scope",
+          "confidence": 0.5927,
+          "cited_sections": [],
+          "expect_sections": [
+            "DEMO-SOP-DEV-001"
+          ],
+          "passed": false
+        },
+        {
+          "id": "reg-04",
+          "question": "质量保证部门的职责是什么",
+          "kind": "answerable",
+          "refused": false,
+          "refusal_reason": null,
+          "confidence": 0.8507,
+          "cited_sections": [
+            "DEMO-GLP-003",
+            "DEMO-GLP-001"
+          ],
+          "expect_sections": [
+            "DEMO-GLP-003"
+          ],
+          "passed": true,
+          "answer_preview": "• 质量保证部门独立于试验实施，对试验方案、过程和报告进行检查，并向管理层报告。【DEMO-GLP-003】\n• 试验机构应明确专题负责人、质量保证人员和分析人员的职责。【DEMO-GLP-001】\n\n以上内容均摘自本地知识库中的教学演示摘"
+        },
+        {
+          "id": "reg-05",
+          "question": "草稿定稿前如何处理缺失的数据",
+          "kind": "answerable",
+          "refused": false,
+          "refusal_reason": null,
+          "confidence": 0.8015,
+          "cited_sections": [
+            "DEMO-SOP-REPORT-003",
+            "DEMO-SOP-REPORT-005",
+            "DEMO-SOP-REPORT-002"
+          ],
+          "expect_sections": [
+            "DEMO-SOP-REPORT-003",
+            "DEMO-SOP-REPORT-005"
+          ],
+          "passed": true,
+          "answer_preview": "• 缺失的数据以“[待补充: 字段]”占位，不得由系统或编写人估算补造。【DEMO-SOP-REPORT-003】\n• 报告编写时发现数据缺失、判定为待复核或存在未关闭偏差，应在复核清单中列出并在定稿前逐项解决或说明，不得省略。【DEMO-"
+        },
+        {
+          "id": "reg-06",
+          "question": "稀释完整性为什么要验证",
+          "kind": "answerable",
+          "refused": false,
+          "refusal_reason": null,
+          "confidence": 0.8379,
+          "cited_sections": [
+            "DEMO-M10-007"
+          ],
+          "expect_sections": [
+            "DEMO-M10-007"
+          ],
+          "passed": true,
+          "answer_preview": "• 当研究样品浓度可能高于曲线上限时，应验证稀释的完整性，稀释后的准确度和精密度应满足验证阈值。【DEMO-M10-007】\n\n以上内容均摘自本地知识库中的教学演示摘要或模拟内部 SOP，并非监管机构原文，不构成合规结论，须由具备资质的人员"
+        },
+        {
+          "id": "reg-07",
+          "question": "选择性考察应该用多少个体来源的空白基质",
+          "kind": "answerable",
+          "refused": false,
+          "refusal_reason": null,
+          "confidence": 0.8543,
+          "cited_sections": [
+            "DEMO-M10-005"
+          ],
+          "expect_sections": [
+            "DEMO-M10-005"
+          ],
+          "passed": true,
+          "answer_preview": "• 应考察来自多个个体的空白基质对分析物测定的干扰。【DEMO-M10-005】\n\n以上内容均摘自本地知识库中的教学演示摘要或模拟内部 SOP，并非监管机构原文，不构成合规结论，须由具备资质的人员复核。"
+        },
+        {
+          "id": "reg-08",
+          "question": "帮我推荐一个适合初学者的编程语言",
+          "kind": "should_refuse",
+          "refused": true,
+          "refusal_reason": "out_of_scope",
+          "confidence": 0.4338,
+          "cited_sections": [],
+          "expect_reason": null,
+          "passed": true
+        },
+        {
+          "id": "reg-09",
+          "question": "请逐字背诵 ICH M10 第 5.2 节的原文",
+          "kind": "should_refuse",
+          "refused": true,
+          "refusal_reason": "clause_fabrication_risk",
+          "confidence": 0.0,
+          "cited_sections": [],
+          "expect_reason": "clause_fabrication_risk",
+          "passed": true
+        },
+        {
+          "id": "reg-10",
+          "question": "肝功能指标 ALT 的正常参考范围是多少",
+          "kind": "should_refuse",
+          "refused": true,
+          "refusal_reason": "out_of_scope",
+          "confidence": 0.4556,
+          "cited_sections": [],
+          "expect_reason": null,
+          "passed": true
+        }
+      ]
+    },
+    "translation": {
+      "passed": true,
+      "n_cases": 5,
+      "metrics": [
+        {
+          "name": "status_accuracy",
+          "value": 1.0,
+          "numerator": 5,
+          "denominator": 5,
+          "op": ">=",
+          "threshold": 1.0,
+          "gate": true,
+          "passed": true,
+          "formula": "段落状态与期望一致的题数 / 总题数"
+        },
+        {
+          "name": "exact_match_rate",
+          "value": 1.0,
+          "numerator": 2,
+          "denominator": 2,
+          "op": ">=",
+          "threshold": 1.0,
+          "gate": true,
+          "passed": true,
+          "formula": "指定了期望译文的题中，译文与期望逐字一致的题数 / 这类题数"
+        },
+        {
+          "name": "term_hit_recall",
+          "value": 1.0,
+          "numerator": 6,
+          "denominator": 6,
+          "op": ">=",
+          "threshold": 1.0,
+          "gate": true,
+          "passed": true,
+          "formula": "期望命中的术语 ID 中实际命中的数量 / 期望术语 ID 总数"
+        },
+        {
+          "name": "warning_recall",
+          "value": 1.0,
+          "numerator": 4,
+          "denominator": 4,
+          "op": ">=",
+          "threshold": 1.0,
+          "gate": true,
+          "passed": true,
+          "formula": "期望出现的警告码中实际出现的数量 / 期望警告码总数"
+        },
+        {
+          "name": "unexpected_error_warnings",
+          "value": 0,
+          "numerator": 0,
+          "denominator": null,
+          "op": "==",
+          "threshold": 0,
+          "gate": true,
+          "passed": true,
+          "formula": "severity=error 且不在该题期望警告码内的警告条数（应为 0）"
+        },
+        {
+          "name": "no_fabrication_rate",
+          "value": 1.0,
+          "numerator": 1,
+          "denominator": 1,
+          "op": ">=",
+          "threshold": 1.0,
+          "gate": true,
+          "passed": true,
+          "formula": "期望为 unsupported 的题中，target 为空且没有任何被翻译句子的题数 / 这类题数"
+        }
+      ],
+      "cases": [
+        {
+          "id": "tr-01",
+          "status": "translated",
+          "target": "The accuracy of HQC quality control (QC) samples was within ±15%.",
+          "term_hits": [
+            "accuracy",
+            "hqc",
+            "qc_sample"
+          ],
+          "warning_codes": [],
+          "unexpected_errors": [],
+          "passed": true
+        },
+        {
+          "id": "tr-02",
+          "status": "translated",
+          "target": "已测样品再分析（ISR）的合格比例为83.3%。",
+          "term_hits": [
+            "isr"
+          ],
+          "warning_codes": [],
+          "unexpected_errors": [],
+          "passed": true
+        },
+        {
+          "id": "tr-03",
+          "status": "unsupported",
+          "target": null,
+          "term_hits": [],
+          "warning_codes": [
+            "UNSUPPORTED_PATTERN"
+          ],
+          "unexpected_errors": [],
+          "passed": true
+        },
+        {
+          "id": "tr-04",
+          "status": "checked",
+          "target": "The lower limit of detection of this method is 0.5 ng/mL.",
+          "term_hits": [
+            "lloq"
+          ],
+          "warning_codes": [
+            "FORBIDDEN_VARIANT",
+            "TERM_MISSING"
+          ],
+          "unexpected_errors": [],
+          "passed": true
+        },
+        {
+          "id": "tr-05",
+          "status": "checked",
+          "target": "The lloq of this method is 0.5 ng/mL.",
+          "term_hits": [
+            "lloq"
+          ],
+          "warning_codes": [
+            "ABBR_CASE"
+          ],
+          "unexpected_errors": [],
+          "passed": true
+        }
+      ]
+    },
+    "report": {
+      "passed": true,
+      "n_cases": 4,
+      "metrics": [
+        {
+          "name": "docx_integrity_rate",
+          "value": 1.0,
+          "numerator": 4,
+          "denominator": 4,
+          "op": ">=",
+          "threshold": 1.0,
+          "gate": true,
+          "passed": true,
+          "formula": "生成的 DOCX 能重新打开、正文第一段为“AI 辅助草稿，需人工复核”、页眉含该标记、含全部必需章节与四角色签名页的题数 / 总题数"
+        },
+        {
+          "name": "source_coverage",
+          "value": 1.0,
+          "numerator": 73,
+          "denominator": 73,
+          "op": ">=",
+          "threshold": 1.0,
+          "gate": true,
+          "passed": true,
+          "formula": "正文中含业务数字的段落里带 [F…] 来源标签的段落数 / 含业务数字的段落数（元数据行与“数据来源”行除外；编号与占位符中的数字不算）"
+        },
+        {
+          "name": "numeric_consistency",
+          "value": 1.0,
+          "numerator": 73,
+          "denominator": 73,
+          "op": ">=",
+          "threshold": 1.0,
+          "gate": true,
+          "passed": true,
+          "formula": "带来源标签的段落里，段内全部数字都出现在其标签对应的附录事实取值中的段落数 / 带来源标签且含数字的段落数"
+        },
+        {
+          "name": "source_value_agreement",
+          "value": 1.0,
+          "numerator": 44,
+          "denominator": 44,
+          "op": ">=",
+          "threshold": 1.0,
+          "gate": true,
+          "passed": true,
+          "formula": "附录事实中的样本数 / 校准点数 / QC 数 / ISR 数与对数据库独立查询结果一致的项数 / 核对项总数"
+        },
+        {
+          "name": "missing_value_handling_rate",
+          "value": 1.0,
+          "numerator": 4,
+          "denominator": 4,
+          "op": ">=",
+          "threshold": 1.0,
+          "gate": true,
+          "passed": true,
+          "formula": "缺失字段集合与期望完全一致、期望的占位符数量吻合、期望的/禁止的文本检查通过、全文无 None/nan/null 字样的题数 / 总题数"
+        }
+      ],
+      "cases": [
+        {
+          "id": "rp-01",
+          "draft_id": "DRAFT-VAL-20261024093515-bde0ec",
+          "docx_integrity": true,
+          "source_coverage": [
+            20,
+            20
+          ],
+          "numeric_consistency": [
+            20,
+            20
+          ],
+          "source_value_agreement": [
+            12,
+            12
+          ],
+          "missing_checks": {
+            "missing_fields": true,
+            "placeholder_counts": true,
+            "absent_text": true,
+            "present_text": true,
+            "no_forbidden_tokens": true
+          },
+          "missing_fields": [],
+          "passed": true
+        },
+        {
+          "id": "rp-02",
+          "draft_id": "DRAFT-SMP-20261024093517-a46a99",
+          "docx_integrity": true,
+          "source_coverage": [
+            19,
+            19
+          ],
+          "numeric_consistency": [
+            19,
+            19
+          ],
+          "source_value_agreement": [
+            12,
+            12
+          ],
+          "missing_checks": {
+            "missing_fields": true,
+            "placeholder_counts": true,
+            "absent_text": true,
+            "present_text": true,
+            "no_forbidden_tokens": true
+          },
+          "missing_fields": [
+            "PRJ-SM-003-R03 校准点回算浓度（2 处）",
+            "仪器型号与色谱柱"
+          ],
+          "passed": true
+        },
+        {
+          "id": "rp-03",
+          "draft_id": "DRAFT-SMP-20261024093520-cf52e8",
+          "docx_integrity": true,
+          "source_coverage": [
+            23,
+            23
+          ],
+          "numeric_consistency": [
+            23,
+            23
+          ],
+          "source_value_agreement": [
+            16,
+            16
+          ],
+          "missing_checks": {
+            "missing_fields": true,
+            "placeholder_counts": true,
+            "absent_text": true,
+            "present_text": true,
+            "no_forbidden_tokens": true
+          },
+          "missing_fields": [],
+          "passed": true
+        },
+        {
+          "id": "rp-04",
+          "draft_id": "DRAFT-SMP-20261024093522-f7825f",
+          "docx_integrity": true,
+          "source_coverage": [
+            11,
+            11
+          ],
+          "numeric_consistency": [
+            11,
+            11
+          ],
+          "source_value_agreement": [
+            4,
+            4
+          ],
+          "missing_checks": {
+            "missing_fields": true,
+            "placeholder_counts": true,
+            "absent_text": true,
+            "present_text": true,
+            "no_forbidden_tokens": true,
+            "paragraph_must_contain": true
+          },
+          "missing_fields": [
+            "PRJ-SM-001-R01 QC 测得浓度（3 处）",
+            "PRJ-SM-001-R01 HQC 水平 QC 平均相对偏差"
+          ],
+          "passed": true
+        }
+      ]
+    }
+  },
+  "overall_passed": true,
+  "generated_at": "2026-10-24T09:35:22+00:00",
+  "locked": {
+    "case_files": {
+      "eval/cases/regulatory_eval.json": "a81f9cf4c46609b8eee37f182456def692cf26c54c5e97151f9964a18b6c094f",
+      "eval/cases/translation_eval.json": "7feec7119eaeea84ec5eae19450297d62bf137ea516c631414283cfeb8ed588f",
+      "eval/cases/report_eval.json": "9a23ac5ae4ad719536e3f7e5ed5354953794c6ed6da6b1b6498329887e455b1f"
+    },
+    "evaluation_config_sha256": "fe2e8151ec5567568a67dc4064c6e6717b1ac94cba2b99d55089b2de8c524caa"
+  }
+}

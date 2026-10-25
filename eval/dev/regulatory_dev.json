@@ -1,0 +1,182 @@
+{
+  "_note": "调参集：仅用于确定拒答阈值与调试重排，与阶段 6 的评测集是不同的问题。模拟问题。dev-a9 起为阶段 2 探测题，期望章节由人工指定。",
+  "cases": [
+    {
+      "id": "dev-a1",
+      "q": "校准曲线至少需要多少个浓度水平",
+      "kind": "answerable",
+      "expect_sections": [
+        "DEMO-M10-002"
+      ]
+    },
+    {
+      "id": "dev-a2",
+      "q": "QC 样品有哪几个水平",
+      "kind": "answerable",
+      "expect_sections": [
+        "DEMO-M10-003",
+        "DEMO-SOP-QC-002"
+      ]
+    },
+    {
+      "id": "dev-a3",
+      "q": "什么情况下判为待复核",
+      "kind": "answerable",
+      "expect_sections": [
+        "DEMO-SOP-QC-003",
+        "DEMO-SOP-ISR-003"
+      ]
+    },
+    {
+      "id": "dev-a4",
+      "q": "偏差在什么条件下可以关闭",
+      "kind": "answerable",
+      "expect_sections": [
+        "DEMO-SOP-DEV-004"
+      ]
+    },
+    {
+      "id": "dev-a5",
+      "q": "稳定性考察包括哪些项目",
+      "kind": "answerable",
+      "expect_sections": [
+        "DEMO-M10-006",
+        "DEMO-CHP9012-005"
+      ]
+    },
+    {
+      "id": "dev-a6",
+      "q": "原始数据修改时有什么要求",
+      "kind": "answerable",
+      "expect_sections": [
+        "DEMO-GLP-002"
+      ]
+    },
+    {
+      "id": "dev-a7",
+      "q": "AI 辅助草稿能否直接发布",
+      "kind": "answerable",
+      "expect_sections": [
+        "DEMO-SOP-REPORT-003"
+      ]
+    },
+    {
+      "id": "dev-a8",
+      "q": "LBA 的 ISR 差值阈值是多少",
+      "kind": "answerable",
+      "expect_sections": [
+        "DEMO-M10-008",
+        "DEMO-SOP-ISR-003"
+      ]
+    },
+    {
+      "id": "dev-o1",
+      "q": "今天北京天气怎么样",
+      "kind": "out_of_scope"
+    },
+    {
+      "id": "dev-o2",
+      "q": "如何用 Python 写一个快速排序",
+      "kind": "out_of_scope"
+    },
+    {
+      "id": "dev-o3",
+      "q": "这家公司的股票值得买吗",
+      "kind": "out_of_scope"
+    },
+    {
+      "id": "dev-o4",
+      "q": "新冠疫苗的临床试验设计有什么要求",
+      "kind": "out_of_scope"
+    },
+    {
+      "id": "dev-o5",
+      "q": "项目 PRJ-SM-001 的 MQC 平均浓度是多少",
+      "kind": "out_of_scope"
+    },
+    {
+      "id": "dev-f1",
+      "q": "请给出 ICH M10 第 7.3.2 条的原文",
+      "kind": "fabricate"
+    },
+    {
+      "id": "dev-f2",
+      "q": "引用 ICH M10 中关于 ISR 的官方条款编号和逐字原文",
+      "kind": "fabricate"
+    },
+    {
+      "id": "dev-f3",
+      "q": "中国药典 9012 第 15 条是怎么规定的",
+      "kind": "fabricate"
+    },
+    {
+      "id": "dev-a9",
+      "q": "偏差报告的时限是多久",
+      "kind": "answerable",
+      "expect_sections": [
+        "DEMO-SOP-DEV-002"
+      ]
+    },
+    {
+      "id": "dev-a10",
+      "q": "HQC 的演示阈值是多少",
+      "kind": "answerable",
+      "expect_sections": [
+        "DEMO-M10-003",
+        "DEMO-SOP-QC-003"
+      ]
+    },
+    {
+      "id": "dev-a11",
+      "q": "哪些情况可以对研究样品再分析",
+      "kind": "answerable",
+      "expect_sections": [
+        "DEMO-M10-009"
+      ]
+    },
+    {
+      "id": "dev-a12",
+      "q": "报告需要谁来签署",
+      "kind": "answerable",
+      "expect_sections": [
+        "DEMO-SOP-REPORT-004",
+        "DEMO-GLP-007"
+      ]
+    },
+    {
+      "id": "dev-a13",
+      "q": "BLQ 样品要不要纳入 ISR",
+      "kind": "answerable",
+      "expect_sections": [
+        "DEMO-SOP-ISR-002"
+      ]
+    },
+    {
+      "id": "dev-a14",
+      "q": "方法验证需要评价哪些内容",
+      "kind": "answerable",
+      "expect_sections": [
+        "DEMO-CHP9012-002",
+        "DEMO-M10-004"
+      ]
+    },
+    {
+      "id": "dev-a15",
+      "q": "QC 失败的分析批能不能剔除不合格的 QC 让批通过",
+      "kind": "answerable",
+      "expect_sections": [
+        "DEMO-SOP-QC-004",
+        "DEMO-M10-009"
+      ]
+    },
+    {
+      "id": "dev-a16",
+      "q": "ISR 样品应该怎么选",
+      "kind": "answerable",
+      "expect_sections": [
+        "DEMO-SOP-ISR-002",
+        "DEMO-M10-008"
+      ]
+    }
+  ]
+}

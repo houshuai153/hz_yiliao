@@ -1,0 +1,80 @@
+# 部署演示用（云服务器）。本地开发、测试、评测都不依赖 Docker。
+#
+# 结构：
+#   internet -> proxy(Caddy: HTTPS + basic auth) -> api(FastAPI：同源托管 React 前端 + /api，会话登录) -> db(PostgreSQL)
+# - 只有 proxy 对外暴露 80/443；api、db 都在 `backend` 内部网络，没有宿主机端口，且该网络不能访问外网
+#   （与“运行时离线”一致）。
+# - 所有密钥来自 .env（见 .env.example），缺失时 compose 会直接报错，不会带着默认口令启动。
+# - 全部为模拟数据；这是原型的部署演示，不是生产级部署方案。
+name: bioplatform
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: bio
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?请在 .env 中设置 POSTGRES_PASSWORD}
+      POSTGRES_DB: bioplatform
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bio -d bioplatform"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [backend]
+    restart: unless-stopped
+
+  api:
+    build: .
+    image: bioplatform-app:${APP_VERSION:-local}
+    # init_data.py 幂等：建表 -> 种子数据 -> 知识库 -> 本地索引；然后启动 API
+    command: ["sh", "-c", "python scripts/init_data.py && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+psycopg://bio:${POSTGRES_PASSWORD}@db:5432/bioplatform
+      API_TOKEN: ${API_TOKEN:?请在 .env 中设置 API_TOKEN}
+      LLM_PROVIDER: deterministic
+      # 浏览器登录用户（scripts/make_ui_user.py 生成的“用户名:scrypt$…”，多个用分号隔开）；静态 API_TOKEN 只给脚本 / 服务端用，不进浏览器
+      UI_USERS: ${UI_USERS:?请在 .env 中设置 UI_USERS（python scripts/make_ui_user.py <用户名> 生成）}
+    volumes:
+      - appdata:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    networks: [backend]
+    restart: unless-stopped
+
+  proxy:
+    image: caddy:2-alpine
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+      BASIC_AUTH_USER: ${BASIC_AUTH_USER:?请在 .env 中设置 BASIC_AUTH_USER}
+      BASIC_AUTH_HASH: ${BASIC_AUTH_HASH:?请在 .env 中设置 BASIC_AUTH_HASH（caddy hash-password 生成）}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [backend, edge]
+    restart: unless-stopped
+
+networks:
+  backend:
+    internal: true      # 内部网络：容器之间互通，但不能访问外网
+  edge:
+
+volumes:
+  pgdata:
+  appdata:
+  caddy_data:

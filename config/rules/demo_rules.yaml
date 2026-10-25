@@ -1,0 +1,101 @@
+# 接受标准规则集（演示配置）
+#
+# 重要：以下数值是教学演示用的配置，不是任何监管机构的法规要求，也不代表任何申办方/方案的最终标准。
+# 所有规则状态均为 demo_unconfirmed，待业务/QA 按具体项目方案确认后才可用于真实业务。
+# 判定三态：pass / fail / pending_review。输入缺失、恰在阈值边界、样本数不足时一律 pending_review。
+
+version: 1
+rule_sets:
+  RS-CHROM-DEMO-v1:
+    method_type: LC-MS/MS
+    description: 色谱（LC-MS/MS）方法演示规则集
+    rules:
+      CAL-ACC:
+        value: {acc_pct: 15, edge_acc_pct: 20, edge_levels: [lowest]}
+        applies_to: 色谱方法的校准曲线各浓度点；edge_levels 指使用放宽阈值的浓度点（最低点 = LLOQ）
+        source_note: 行业常见做法的演示取值；非法规原文；未对应任何真实条款编号
+        status: demo_unconfirmed
+        to_confirm: 是否按项目方案覆盖
+      CAL-MIN:
+        value: {min_fraction: 0.75, min_levels: 6}
+        applies_to: 每批校准曲线
+        source_note: 演示取值；min_levels 为曲线至少应包含的浓度水平数
+        status: demo_unconfirmed
+        to_confirm: 项目方案是否有更严格要求
+      QC-ACC:
+        value: {acc_pct: 15, lloq_acc_pct: 20}
+        applies_to: 各水平 QC 样品相对偏差
+        source_note: 演示取值
+        status: demo_unconfirmed
+        to_confirm: 项目方案阈值
+      QC-RUN:
+        value: {run_min_fraction: 0.666666, level_min_fraction: 0.5}
+        applies_to: 每批 QC 整体与各水平合格比例
+        source_note: 演示取值
+        status: demo_unconfirmed
+        to_confirm: 方案是否调整
+      ISR-DIFF:
+        value: {diff_pct: 20}
+        applies_to: 单个 ISR 样品两次结果的差值（相对于两次均值）
+        source_note: 演示取值
+        status: demo_unconfirmed
+        to_confirm: 阈值
+      ISR-RATE:
+        value: {min_rate: 0.67}
+        applies_to: ISR 合格样品比例
+        source_note: 演示取值
+        status: demo_unconfirmed
+        to_confirm: 比例
+      ISR-N:
+        value: {min_n: 10}
+        applies_to: 每批 ISR 样品数
+        source_note: 演示取值
+        status: demo_unconfirmed
+        to_confirm: 样本量要求
+
+  RS-LBA-DEMO-v1:
+    method_type: LBA
+    description: 配体结合分析（LBA，如 ELISA）方法演示规则集
+    rules:
+      CAL-ACC:
+        value: {acc_pct: 20, edge_acc_pct: 25, edge_levels: [lowest, highest]}
+        applies_to: LBA 校准曲线各浓度点；最低点（LLOQ）与最高点（ULOQ）使用放宽阈值
+        source_note: 行业常见做法的演示取值；非法规原文
+        status: demo_unconfirmed
+        to_confirm: LBA 阈值是否按方案
+      CAL-MIN:
+        value: {min_fraction: 0.75, min_levels: 6}
+        applies_to: 每批校准曲线
+        source_note: 演示取值
+        status: demo_unconfirmed
+        to_confirm: 项目方案
+      QC-ACC:
+        value: {acc_pct: 20, lloq_acc_pct: 25}
+        applies_to: 各水平 QC 样品相对偏差
+        source_note: 演示取值
+        status: demo_unconfirmed
+        to_confirm: LBA 阈值
+      QC-RUN:
+        value: {run_min_fraction: 0.666666, level_min_fraction: 0.5}
+        applies_to: 每批 QC 整体与各水平合格比例
+        source_note: 演示取值
+        status: demo_unconfirmed
+        to_confirm: 方案是否调整
+      ISR-DIFF:
+        value: {diff_pct: 30}
+        applies_to: 单个 ISR 样品两次结果的差值（相对于两次均值）
+        source_note: 演示取值
+        status: demo_unconfirmed
+        to_confirm: 阈值
+      ISR-RATE:
+        value: {min_rate: 0.67}
+        applies_to: ISR 合格样品比例
+        source_note: 演示取值
+        status: demo_unconfirmed
+        to_confirm: 比例
+      ISR-N:
+        value: {min_n: 10}
+        applies_to: 每批 ISR 样品数
+        source_note: 演示取值
+        status: demo_unconfirmed
+        to_confirm: 样本量要求

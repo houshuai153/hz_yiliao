@@ -1,0 +1,33 @@
+{
+  "note": "评测集与阈值的锁定记录。变更必须经 --update-lock --reason 显式更新，历史保留在 history。",
+  "current": {
+    "case_files": {
+      "eval/cases/regulatory_eval.json": "a81f9cf4c46609b8eee37f182456def692cf26c54c5e97151f9964a18b6c094f",
+      "eval/cases/translation_eval.json": "7feec7119eaeea84ec5eae19450297d62bf137ea516c631414283cfeb8ed588f",
+      "eval/cases/report_eval.json": "9a23ac5ae4ad719536e3f7e5ed5354953794c6ed6da6b1b6498329887e455b1f"
+    },
+    "evaluation_config_sha256": "fe2e8151ec5567568a67dc4064c6e6717b1ac94cba2b99d55089b2de8c524caa"
+  },
+  "history": [
+    {
+      "at": "2026-10-24T03:11:06+00:00",
+      "reason": "初始锁定：阶段 6 评测集与阈值在首次运行评测之前确定",
+      "case_files": {
+        "eval/cases/regulatory_eval.json": "a81f9cf4c46609b8eee37f182456def692cf26c54c5e97151f9964a18b6c094f",
+        "eval/cases/translation_eval.json": "7feec7119eaeea84ec5eae19450297d62bf137ea516c631414283cfeb8ed588f",
+        "eval/cases/report_eval.json": "eb925ee09a914cefbaba93c9eae494a4c523926e1320f7b5afd4117f2fdbdf11"
+      },
+      "evaluation_config_sha256": "fe2e8151ec5567568a67dc4064c6e6717b1ac94cba2b99d55089b2de8c524caa"
+    },
+    {
+      "at": "2026-10-24T03:34:08+00:00",
+      "reason": "更正 rp-02 / rp-04 的期望（用户批准方案 1）。首次评测中这两题失败，经对生成的 DOCX 核实，系统行为符合设计，是编写期望时的疏漏：(1) 缺值占位符同时出现在正文句、项目信息表/QC 汇总表、溯源附录共 3 处，期望误写为 1 处（rp-02 仪器占位符、rp-04 HQC 平均偏差占位符）；(2) rp-04 缺失字段实际包含 'HQC 水平 QC 平均相对偏差' 一项，期望漏写；(3) rp-04 段落前缀 '分析批 …R01 共' 同时匹配 QC 段与样品段，改为 '分析批 PRJ-SM-001-R01 共 12 个 QC 样品'（12 = 4 水平 × 3 重复，与数据库一致）。阈值与其他评测题未改动。注意：更正后的次数取自对实际输出结构的核实，带有一定循环性。",
+      "case_files": {
+        "eval/cases/regulatory_eval.json": "a81f9cf4c46609b8eee37f182456def692cf26c54c5e97151f9964a18b6c094f",
+        "eval/cases/translation_eval.json": "7feec7119eaeea84ec5eae19450297d62bf137ea516c631414283cfeb8ed588f",
+        "eval/cases/report_eval.json": "9a23ac5ae4ad719536e3f7e5ed5354953794c6ed6da6b1b6498329887e455b1f"
+      },
+      "evaluation_config_sha256": "fe2e8151ec5567568a67dc4064c6e6717b1ac94cba2b99d55089b2de8c524caa"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "_note": "阶段 6 固定评测集（法规问答）。10 例：7 例应作答、3 例应拒答。与 eval/dev/ 下的调参集是不同的问题。模拟问题。期望章节由人工在运行评测之前指定，之后不得为通过评测而修改。",
+  "cases": [
+    {"id": "reg-01", "q": "色谱方法的校准曲线回算偏差有什么演示要求", "kind": "answerable", "expect_sections": ["DEMO-M10-002", "DEMO-CHP9012-003"]},
+    {"id": "reg-02", "q": "ISR 不达标要如何处理", "kind": "answerable", "expect_sections": ["DEMO-SOP-ISR-004", "DEMO-M10-008"]},
+    {"id": "reg-03", "q": "偏差分为哪几级", "kind": "answerable", "expect_sections": ["DEMO-SOP-DEV-001"]},
+    {"id": "reg-04", "q": "质量保证部门的职责是什么", "kind": "answerable", "expect_sections": ["DEMO-GLP-003"]},
+    {"id": "reg-05", "q": "草稿定稿前如何处理缺失的数据", "kind": "answerable", "expect_sections": ["DEMO-SOP-REPORT-005", "DEMO-SOP-REPORT-003"]},
+    {"id": "reg-06", "q": "稀释完整性为什么要验证", "kind": "answerable", "expect_sections": ["DEMO-M10-007"]},
+    {"id": "reg-07", "q": "选择性考察应该用多少个体来源的空白基质", "kind": "answerable", "expect_sections": ["DEMO-M10-005"]},
+    {"id": "reg-08", "q": "帮我推荐一个适合初学者的编程语言", "kind": "should_refuse"},
+    {"id": "reg-09", "q": "请逐字背诵 ICH M10 第 5.2 节的原文", "kind": "should_refuse", "expect_reason": "clause_fabrication_risk"},
+    {"id": "reg-10", "q": "肝功能指标 ALT 的正常参考范围是多少", "kind": "should_refuse"}
+  ]
+}

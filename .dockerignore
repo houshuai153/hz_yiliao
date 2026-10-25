@@ -1,0 +1,14 @@
+.venv/
+data/
+.git/
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+tests/
+*.egg-info/
+web/node_modules/
+web/dist/
+legacy/
+.claude/
+.taste-skill/

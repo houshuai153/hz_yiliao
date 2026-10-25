@@ -1,0 +1,118 @@
+regulatory:
+  rrf_k: 60
+  retrieve_k: 10        # 每一路召回的候选数
+  top_k: 5              # 融合后用于作答的块数上限
+  max_sentences: 4      # 抽取式答案的最大句数
+  weights: {coverage: 0.4, vector: 0.3, rrf: 0.3}
+  # 拒答阈值：在独立调参集 eval/dev/regulatory_dev.json 上确定，不得依评测集修改。
+  # confidence 是“证据充分度启发式分数”，不是答案正确的概率，也未经校准。
+  refusal_threshold: 0.60
+  threshold_note: "0.60：调参集上拒答类最高 0.520、可答类最低 0.709，取其间；初值 0.35 无法区分，见 eval/dev/README.md"
+  # 重排只影响“用哪些块、哪些句子作答”，不改变 confidence 与拒答判定（它们由重排前的融合结果计算）。
+  rerank:
+    enabled: true
+    weight: 0.5            # 最终分 = (1-weight)×RRF相对分 + weight×IDF加权词法匹配分
+    sentence_floor: 0.5    # 句子的 IDF 加权重叠须不低于最佳句的 50%
+    chunk_floor: 0.8       # 块的最终分须不低于第一名的 80%；调参集上 0.9 起开始漏命中，见 eval/dev/README.md
+
+# ============================ 阶段 6：评测 ============================
+# 指标定义、通过阈值与计算方法都在这里；评测集在 eval/cases/。
+# 阈值是在运行评测之前一次性确定的，之后不得为通过验收而修改（修改须走 `scripts/run_eval.py --update-lock --reason`，
+# 并会记入 eval/cases.lock.json 的历史）。gate=false 的指标只报告，不参与通过 / 失败。
+evaluation:
+  version: 1
+  suites:
+    regulatory:
+      cases_file: eval/cases/regulatory_eval.json
+      metrics:
+        answerable_hit_rate:
+          op: ">="
+          threshold: 0.80
+          gate: true
+          formula: "应作答的题中，(未拒答 且 引用中至少含一个期望章节) 的题数 / 应作答题数"
+        false_refusal_rate:
+          op: "<="
+          threshold: 0.15
+          gate: true
+          formula: "应作答的题中被拒答的题数 / 应作答题数"
+        refusal_recall:
+          op: ">="
+          threshold: 1.0
+          gate: true
+          formula: "应拒答的题中，实际拒答（且若指定了 expect_reason 则原因一致）的题数 / 应拒答题数"
+        citation_validity:
+          op: ">="
+          threshold: 1.0
+          gate: true
+          formula: "所有作答返回的引用中，quote 为知识库章节原文子串、元数据与库一致且 is_demo=true 的条数 / 引用总条数（无引用则判 0）"
+        demo_labeling_rate:
+          op: ">="
+          threshold: 1.0
+          gate: true
+          formula: "作答的题中，答案含“非监管机构原文”声明 且 每条引用均带演示性质标签的题数 / 作答题数"
+        citation_precision:
+          op: ">="
+          threshold: 0.40
+          gate: false
+          formula: "应作答题的全部引用里，属于期望章节的条数 / 引用总条数（信息性指标；期望章节是窄集合，偏保守）"
+    translation:
+      cases_file: eval/cases/translation_eval.json
+      metrics:
+        status_accuracy:
+          op: ">="
+          threshold: 1.0
+          gate: true
+          formula: "段落状态与期望一致的题数 / 总题数"
+        exact_match_rate:
+          op: ">="
+          threshold: 1.0
+          gate: true
+          formula: "指定了期望译文的题中，译文与期望逐字一致的题数 / 这类题数"
+        term_hit_recall:
+          op: ">="
+          threshold: 1.0
+          gate: true
+          formula: "期望命中的术语 ID 中实际命中的数量 / 期望术语 ID 总数"
+        warning_recall:
+          op: ">="
+          threshold: 1.0
+          gate: true
+          formula: "期望出现的警告码中实际出现的数量 / 期望警告码总数"
+        unexpected_error_warnings:
+          op: "=="
+          threshold: 0
+          gate: true
+          formula: "severity=error 且不在该题期望警告码内的警告条数（应为 0）"
+        no_fabrication_rate:
+          op: ">="
+          threshold: 1.0
+          gate: true
+          formula: "期望为 unsupported 的题中，target 为空且没有任何被翻译句子的题数 / 这类题数"
+    report:
+      cases_file: eval/cases/report_eval.json
+      metrics:
+        docx_integrity_rate:
+          op: ">="
+          threshold: 1.0
+          gate: true
+          formula: "生成的 DOCX 能重新打开、正文第一段为“AI 辅助草稿，需人工复核”、页眉含该标记、含全部必需章节与四角色签名页的题数 / 总题数"
+        source_coverage:
+          op: ">="
+          threshold: 1.0
+          gate: true
+          formula: "正文中含业务数字的段落里带 [F…] 来源标签的段落数 / 含业务数字的段落数（元数据行与“数据来源”行除外；编号与占位符中的数字不算）"
+        numeric_consistency:
+          op: ">="
+          threshold: 1.0
+          gate: true
+          formula: "带来源标签的段落里，段内全部数字都出现在其标签对应的附录事实取值中的段落数 / 带来源标签且含数字的段落数"
+        source_value_agreement:
+          op: ">="
+          threshold: 1.0
+          gate: true
+          formula: "附录事实中的样本数 / 校准点数 / QC 数 / ISR 数与对数据库独立查询结果一致的项数 / 核对项总数"
+        missing_value_handling_rate:
+          op: ">="
+          threshold: 1.0
+          gate: true
+          formula: "缺失字段集合与期望完全一致、期望的占位符数量吻合、期望的/禁止的文本检查通过、全文无 None/nan/null 字样的题数 / 总题数"
