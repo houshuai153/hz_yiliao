@@ -1,0 +1,38 @@
+# 在 Docker 部署里启用在线大模型（Agent 对话依赖它）。默认部署不使用本文件，api 仍然完全离线。
+# 用法：docker compose -f docker-compose.yml -f docker-compose.llm.yml up -d
+#
+# 受控出网方案（不放开 backend 内部网络）：
+#   api ──(backend，内部网络)──> egress(Squid) ──(egress 网络，可出网)──> api.deepseek.com:443
+# - backend 仍是 internal：api、db 不能直接访问外网，只有 egress 同时在 backend 与 egress 两个网络里。
+# - egress 只放行到 api.deepseek.com:443 的 HTTPS CONNECT 隧道（deploy/squid.conf），其余全部拒绝；
+#   TLS 端到端，代理看不到内容也拿不到密钥。
+# - api 通过 HTTPS_PROXY 使用代理，NO_PROXY 保证访问 db / 本机不经代理。
+# - LLM_API_KEY 只通过 .env 传给 api 容器；缺失时 compose 直接报错，不会静默回退。
+# - 启用后发给模型的内容仍然先经 app/llm/redact.py 脱敏（模式匹配，不保证无其他敏感信息）。
+services:
+  egress:
+    image: ubuntu/squid:6.6-24.04_edge
+    volumes:
+      - ./deploy/squid.conf:/etc/squid/squid.conf:ro
+    networks: [backend, egress]
+    restart: unless-stopped
+    read_only: true
+    tmpfs: ["/var/run:mode=1777", "/var/spool/squid:mode=1777", "/var/log/squid:mode=1777", "/tmp:mode=1777"]
+    cap_drop: [ALL]
+    cap_add: [SETUID, SETGID]
+    security_opt: ["no-new-privileges:true"]
+
+  api:
+    environment:
+      LLM_PROVIDER: deepseek
+      LLM_API_KEY: ${LLM_API_KEY:?请在 .env 中设置 LLM_API_KEY}
+      LLM_BASE_URL: https://api.deepseek.com
+      LLM_MODEL: ${LLM_MODEL:-deepseek-chat}
+      HTTPS_PROXY: http://egress:3128
+      NO_PROXY: db,localhost,127.0.0.1
+    depends_on:
+      egress:
+        condition: service_started
+
+networks:
+  egress:      # 普通（可出网）网络，只有 egress 服务接入
