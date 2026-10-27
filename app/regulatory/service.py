@@ -211,7 +211,7 @@ class RegulatoryAssistant:
         return AskResult(REFUSAL_TEXT[reason], [], round(confidence, 4),
                          basis or {"note": CONFIDENCE_NOTE, "score": round(confidence, 4)}, True, reason)
 
-    def ask(self, question: str, top_k: int | None = None) -> AskResult:
+    def ask(self, question: str, top_k: int | None = None, *, polish: bool = True) -> AskResult:
         q = question.strip()
         if not q:
             return self._refuse("empty_question")
@@ -226,7 +226,7 @@ class RegulatoryAssistant:
                                  if c.section_id in set(mentioned))]
             basis = {"note": CONFIDENCE_NOTE, "score": 1.0, "mode": "explicit_section_id",
                      "threshold": self.cfg.refusal_threshold}
-            return self._compose(fused, basis, 1.0, set(mentioned), set())
+            return self._compose(fused, basis, 1.0, set(mentioned), set(), polish)
 
         if _CLAUSE_RE.search(q):
             return self._refuse("clause_fabrication_risk")
@@ -238,9 +238,9 @@ class RegulatoryAssistant:
         if not fused or score < self.cfg.refusal_threshold:
             return self._refuse("out_of_scope", score, basis)
         retrieved = {h.chunk.section_id for h in fused}
-        return self._compose(self.rerank(terms, fused)[:top_k], basis, score, retrieved, terms)
+        return self._compose(self.rerank(terms, fused)[:top_k], basis, score, retrieved, terms, polish)
 
-    def _compose(self, hits, basis, score, retrieved_sections, terms) -> AskResult:
+    def _compose(self, hits, basis, score, retrieved_sections, terms, polish: bool = True) -> AskResult:
         draft = self.composer(self.index, terms, hits, self.cfg.max_sentences)
         if not draft.segments:
             return self._refuse("no_supporting_sentence", score, basis)
@@ -253,7 +253,7 @@ class RegulatoryAssistant:
             f"{body}\n\n{DISCLAIMER}", draft.citations, round(score, 4), basis, False, None,
             [{"text": s.text, "section_id": s.section_id} for s in draft.segments],
         )
-        if self.provider is not None:
+        if self.provider is not None and polish:
             self._polish(res, body)
         return res
 

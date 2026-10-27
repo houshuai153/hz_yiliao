@@ -3,9 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.api.auth import require_token
-from app.kb.indexer import load_index
-from app.llm.base import provider_of
-from app.regulatory.config import load_regulatory_config
+from app.deps import assistant_of
 from app.regulatory.service import RegulatoryAssistant
 
 router = APIRouter(prefix="/api/regulatory", dependencies=[Depends(require_token)])
@@ -41,14 +39,10 @@ class AskResponse(BaseModel):
 
 
 def get_assistant(request: Request) -> RegulatoryAssistant:
-    state = request.app.state
-    if getattr(state, "assistant", None) is None:
-        try:
-            index = load_index(state.settings.index_dir)
-        except FileNotFoundError as exc:
-            raise HTTPException(status_code=503, detail=str(exc)) from exc
-        state.assistant = RegulatoryAssistant(index, load_regulatory_config(), provider=provider_of(state))
-    return state.assistant
+    try:
+        return assistant_of(request.app.state)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @router.post("/ask", response_model=AskResponse)

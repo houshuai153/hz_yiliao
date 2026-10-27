@@ -208,3 +208,108 @@ class UISession(Base):
     csrf_token: Mapped[str] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class AgentWriteClaim(Base):
+    """Agent 写工具的幂等记录：同一个幂等键只执行一次，重复提交返回已保存的结果。
+
+    status=claimed 表示已占用但尚未写入结果（执行中，或进程在中途退出）；done 表示 result_json 已是最终结果。
+    confirmation_id 唯一：一次确认只能对应一次占用。
+    """
+    __tablename__ = "agent_write_claim"
+
+    idempotency_key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    confirmation_id: Mapped[str] = mapped_column(String(64), unique=True)
+    tool: Mapped[str] = mapped_column(String(40))
+    operator: Mapped[str] = mapped_column(String(64))
+    session_key: Mapped[str] = mapped_column(String(64))
+    args_hash: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(10), default="claimed")  # claimed / done
+    result_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
+class AgentTask(Base):
+    """Agent 会话（多轮任务）。绑定登录用户与登录会话；到期清理。"""
+    __tablename__ = "agent_task"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    username: Mapped[str] = mapped_column(String(64), index=True)
+    session_key: Mapped[str] = mapped_column(String(64), index=True)
+    # running / awaiting_confirmation / idle / failed / terminated / expired
+    status: Mapped[str] = mapped_column(String(24), default="idle")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    active_role: Mapped[str] = mapped_column(String(16), default="orchestrator")   # 当前持有控制权的角色
+    active_frame: Mapped[str] = mapped_column(String(16), default="root")
+    delegate_call_id: Mapped[str | None] = mapped_column(String(64), nullable=True)  # 总控等待结果的 delegate 调用
+    frame_seq: Mapped[int] = mapped_column(Integer, default=0)
+    user_message: Mapped[str] = mapped_column(Text, default="")                     # 本轮用户消息（已脱敏限长）
+    user_message_id: Mapped[str] = mapped_column(String(40), default="")
+    run_rounds: Mapped[int] = mapped_column(Integer, default=0)
+    run_tool_calls: Mapped[int] = mapped_column(Integer, default=0)
+    tokens_used: Mapped[int] = mapped_column(Integer, default=0)
+    evidence_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    final_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    termination_reason: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    error_code: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    audit_complete: Mapped[bool | None] = mapped_column(Boolean, nullable=True, default=True)  # False = 有步骤未能写入审计
+
+
+class AgentMessage(Base):
+    """发给模型的对话历史（已脱敏、限长）。随任务到期清理。"""
+    __tablename__ = "agent_message"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    task_id: Mapped[str] = mapped_column(String(36), index=True)
+    frame_id: Mapped[str] = mapped_column(String(16))
+    agent_role: Mapped[str] = mapped_column(String(16))
+    role: Mapped[str] = mapped_column(String(10))            # user / assistant / tool
+    content: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tool_call_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    name: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    tool_calls_json: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
+class AgentStep(Base):
+    """服务端执行并记录的步骤：角色切换、模型调用、工具调用、确认、最终回答。id 即 step_id。"""
+    __tablename__ = "agent_step"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    task_id: Mapped[str] = mapped_column(String(36), index=True)
+    kind: Mapped[str] = mapped_column(String(24))
+    agent_role: Mapped[str] = mapped_column(String(16))
+    tool_name: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    summary: Mapped[str] = mapped_column(Text, default="")
+    request_id: Mapped[str | None] = mapped_column(String(36), nullable=True)   # 与 audit_log.request_id 对应
+    operator: Mapped[str] = mapped_column(String(64), default="")
+    # ---- 阶段 3：审计字段。只存白名单参数摘要、来源编号、内容哈希，不存提示词 / 模型输出 / 工具结果正文 ----
+    args_summary: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    source_ids: Mapped[list | None] = mapped_column(JSON, nullable=True)         # ["run:PRJ-…-R01", "kb_section:DEMO-…"]
+    content_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)  # 已脱敏内容的 SHA-256（可核对、不可还原）
+    model_status: Mapped[str | None] = mapped_column(String(16), nullable=True)  # ok / rejected / model / fallback
+    tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
+class AgentPendingAction(Base):
+    """等待用户独立确认的写操作。参数与哈希由服务端保存，模型无法在确认后改动。"""
+    __tablename__ = "agent_pending_action"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    task_id: Mapped[str] = mapped_column(String(36), index=True)
+    frame_id: Mapped[str] = mapped_column(String(16))
+    agent_role: Mapped[str] = mapped_column(String(16))
+    tool_call_id: Mapped[str] = mapped_column(String(64))
+    tool: Mapped[str] = mapped_column(String(40))
+    args_json: Mapped[dict] = mapped_column(JSON)
+    args_hash: Mapped[str] = mapped_column(String(64))
+    summary: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(12), default="pending")   # pending / confirming / executed / rejected / expired
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    result_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)

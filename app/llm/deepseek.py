@@ -58,9 +58,8 @@ class DeepSeekProvider:
         self.patterns = PatternTranslator.load(self.glossary)
 
     # ---------- 传输 ----------
-    def _chat(self, system: str, user: str, max_tokens: int = 1024) -> str:
-        body = {"model": self.model, "temperature": 0, "max_tokens": max_tokens, "stream": False,
-                "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
+    def _post(self, body: dict) -> dict:
+        """发送一次 chat/completions 请求，返回解析后的 JSON。只暴露状态类错误，不含请求 / 响应正文或密钥。"""
         try:
             r = self.session.post(self.url, json=body, timeout=self.timeout, allow_redirects=False,
                                   headers={"Authorization": f"Bearer {self._key.get_secret_value()}"})
@@ -69,12 +68,31 @@ class DeepSeekProvider:
         if r.status_code != 200:
             raise LLMError(f"HTTP {r.status_code}")
         try:
-            content = r.json()["choices"][0]["message"]["content"]
-        except (ValueError, KeyError, IndexError, TypeError):
+            data = r.json()
+        except ValueError:
+            raise LLMError("响应格式异常") from None
+        if not isinstance(data, dict):
+            raise LLMError("响应格式异常")
+        return data
+
+    def _chat(self, system: str, user: str, max_tokens: int = 1024) -> str:
+        body = {"model": self.model, "temperature": 0, "max_tokens": max_tokens, "stream": False,
+                "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
+        data = self._post(body)
+        try:
+            content = data["choices"][0]["message"]["content"]
+        except (KeyError, IndexError, TypeError):
             raise LLMError("响应格式异常") from None
         if not isinstance(content, str):
             raise LLMError("响应格式异常")
         return _FENCE.sub("", content.strip()).strip()
+
+    def chat_with_tools(self, messages: list[dict], tools: list[dict], *, max_tokens: int = 1024) -> dict:
+        """OpenAI 兼容的 tools / tool_calls 调用。返回**未解析**的响应 JSON；调用方（Agent 编排层）负责严格解析，
+        非法的工具名 / 参数 / 调用 ID 一律拒绝。发出的 messages 必须已经过脱敏与限长（本方法不替调用方做）。"""
+        body = {"model": self.model, "temperature": 0, "max_tokens": max_tokens, "stream": False,
+                "messages": messages, "tools": tools, "tool_choice": "auto"}
+        return self._post(body)
 
     # ---------- 翻译：固定句型优先，句型之外才问模型 ----------
     def translate_sentence(self, sentence: str, direction: str) -> PatternResult | None:

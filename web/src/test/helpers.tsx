@@ -18,7 +18,7 @@ export function mockFetch(routes: Record<string, Handler>) {
     calls.push({ method, path: url.pathname, body: init?.body ? JSON.parse(String(init.body)) : undefined, headers: Object.fromEntries(Object.entries((init?.headers ?? {}) as Record<string, string>)) });
     const h = routes[`${method} ${url.pathname}`];
     if (h === undefined) return new Response(JSON.stringify({ detail: `no mock for ${method} ${url.pathname}` }), { status: 404 });
-    const out = typeof h === "function" ? (h as (i: RequestInit | undefined, u: URL) => unknown)(init, url) : h;
+    const out = await (typeof h === "function" ? (h as (i: RequestInit | undefined, u: URL) => unknown)(init, url) : h);   // 处理函数可以是异步的（模拟慢响应）
     if (out instanceof Response) return out;
     return new Response(JSON.stringify(out), { status: 200, headers: { "Content-Type": "application/json" } });
   });

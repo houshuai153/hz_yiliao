@@ -3,7 +3,8 @@
 生物分析业务 AI 效能平台（工程原型）。**全部业务数据为模拟数据；翻译/问答/报告默认为规则与模板实现（非 LLM）；大模型（DeepSeek）仅在 `.env` 显式启用后用于翻译兜底、问答措辞、报告修订建议，判定与指标仍只由规则计算。** 修改前先读 `SPEC.md` 对应章节。
 
 ## 结构
-- `app/` 后端：`api/` 薄路由；`audit/` 审计中间件与表；`db/` 引擎与基类；`settings.py` 配置。已有 `kb/ regulatory/ translation/ rules/ llm/ reports/ dashboard/`。
+- `app/` 后端：`api/` 薄路由；`audit/` 审计中间件与表；`db/` 引擎与基类；`settings.py` 配置。已有 `kb/ regulatory/ translation/ rules/ llm/ reports/ dashboard/ agent/`。
+- `app/agent/` 多智能体层（SPEC 第 14 节）：判定仍只来自 `app/rules`；写工具只经“用户独立确认”闸门；没有 `approve`；发给模型的内容必须过 `app/llm/redact.py`；审计只存哈希；Agent 接口只认浏览器会话 + CSRF，操作人取自 `operator_name(request)`。测试只用脚本化模拟模型，不得写成“真实 DeepSeek 已验证”。
 - `web/` React + TypeScript 前端（Vite）：只经同源 `/api` 调后端，不直连数据库、不在页面里计算指标或判定；**浏览器里不得出现 `API_TOKEN`**（登录后只持有 HttpOnly 会话 Cookie + CSRF 令牌，操作人 = 登录名）。`legacy/streamlit-ui/` 是已被替换的旧 Streamlit 前端，不再维护、不在测试和镜像中。
 - `config/` 规则集（`rules/`）、术语表与翻译句型（`glossary/terms.yaml`、`patterns.yaml`）、评测配置（`eval.yaml`）——**业务术语与阈值在这里，不在代码里**。
 - `knowledge/` 教学演示摘要（`DEMO-*` 章节 ID，不得写入真实法规原文或真实条款编号）。

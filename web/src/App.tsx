@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from "./auth/AuthContext";
 import { Shell } from "./components/Shell";
 import { ToastProvider } from "./components/Toast";
 import { Skel } from "./components/ui";
+import { Agent } from "./pages/Agent";
 import { Dashboard } from "./pages/Dashboard";
 import { Login } from "./pages/Login";
 import { Qa } from "./pages/Qa";
@@ -28,6 +29,7 @@ function Gate() {
         <Route index element={<Dashboard />} />
         <Route path="reports" element={<Reports />} />
         <Route path="reports/:draftId" element={<ReportReview />} />
+        <Route path="agent" element={<Agent />} />
         <Route path="qa" element={<Qa />} />
         <Route path="translate" element={<Translate />} />
         <Route path="*" element={<Navigate to="/" replace />} />

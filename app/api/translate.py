@@ -5,8 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.api.auth import require_token
-from app.llm.base import get_provider
-from app.translation.glossary import Glossary
+from app.deps import translation_service_of
 from app.translation.service import TranslationError, TranslationService
 
 router = APIRouter(prefix="/api/translate", dependencies=[Depends(require_token)])
@@ -30,11 +29,7 @@ class TranslateResponse(BaseModel):
 
 
 def get_service(request: Request) -> TranslationService:
-    state = request.app.state
-    if getattr(state, "translation_service", None) is None:
-        glossary = Glossary.load()
-        state.translation_service = TranslationService(get_provider(state.settings, glossary), glossary)
-    return state.translation_service
+    return translation_service_of(request.app.state)
 
 
 @router.get("/capabilities")

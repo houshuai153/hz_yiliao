@@ -1,4 +1,4 @@
-import { FileCheck2, FlaskConical, Languages, LayoutDashboard, LogOut, Menu, X, BookOpenCheck } from "lucide-react";
+import { Bot, FileCheck2, FlaskConical, Languages, LayoutDashboard, LogOut, Menu, X, BookOpenCheck } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useDrafts, useHealth } from "../api/hooks";
@@ -15,7 +15,7 @@ export function BrandMark() {
   );
 }
 
-const TITLES: [string, string][] = [["/reports", "报告审核"], ["/qa", "法规与 SOP 问答"], ["/translate", "翻译与术语核对"], ["/", "项目看板"]];
+const TITLES: [string, string][] = [["/agent", "Agent 对话"], ["/reports", "报告审核"], ["/qa", "法规与 SOP 问答"], ["/translate", "翻译与术语核对"], ["/", "项目看板"]];
 
 export function Shell() {
   const me = useMe();
@@ -50,6 +50,7 @@ export function Shell() {
             <FileCheck2 aria-hidden />报告审核
             {waiting > 0 && <span className="nav__count" aria-label={`${waiting} 份草稿待处理`}>{waiting}</span>}
           </NavLink>
+          <NavLink to="/agent" className="nav__item" onClick={close}><Bot aria-hidden />Agent 对话</NavLink>
           <div className="nav__group">知识与语言</div>
           <NavLink to="/qa" className="nav__item" onClick={close}><BookOpenCheck aria-hidden />法规与 SOP 问答</NavLink>
           <NavLink to="/translate" className="nav__item" onClick={close}><Languages aria-hidden />翻译与术语核对</NavLink>

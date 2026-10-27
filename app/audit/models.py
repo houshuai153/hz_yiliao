@@ -25,5 +25,6 @@ class AuditLog(Base):
     rule_ids: Mapped[list] = mapped_column(JSON, default=list)
     refused: Mapped[bool] = mapped_column(Boolean, default=False)
     draft_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    agent_task_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)  # Agent 请求所属任务
     status_code: Mapped[int] = mapped_column(Integer)
     latency_ms: Mapped[int] = mapped_column(Integer)

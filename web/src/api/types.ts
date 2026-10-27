@@ -82,3 +82,27 @@ export interface EventRow { id: number; ts: string; operator: string; action: st
 export interface Suggestion { bid: string; original: string; suggestion: string | null; used: boolean; reason: string | null; redactions: Record<string, number>; provider: string }
 export interface DraftCreated { draft_id: string; review_status: ReviewStatus; missing_fields: string[]; fact_count: number; fact_sentences: number; unsourced_sentences: number }
 export interface ProjectRow { id: string; title: string; method_type: string; planned_run_count: number; run_count: number }
+
+// ---------- Agent 对话（只含可公开的字段：不含提示词、模型推理、工具结果正文、参数哈希之外的敏感参数）----------
+export type AgentStatus = "running" | "awaiting_confirmation" | "idle" | "failed" | "terminated" | "expired";
+export interface AgentStep { step_id: number; kind: string; agent_role: string; tool_name: string | null; status: string | null; summary: string; args_summary: string | null; sources: string[]; model_status: string | null; created_at: string }
+export interface AgentPending { action_id: string; tool: string; summary: string; args: Record<string, unknown>; args_hash: string; status: string; expires_at: string }
+export interface AgentEvidence {
+  verdict_source: string; rule_status: string;
+  projects: { project_id: string; title: string }[];
+  runs: { run_id: string; status: RunStatus; calibration: Verdict; qc: Verdict; accepted: Verdict; isr: Verdict }[];
+  reports: { draft_id: string; review_status: ReviewStatus; project_id: string; review_url: string }[];
+}
+export interface AgentFinal { answer: string; answer_source: "model" | "server_fallback" | "server_summary"; fallback_reason: string[]; evidence: AgentEvidence; verdict_source: string }
+export interface AgentTask {
+  task_id: string; status: AgentStatus; active_role: string; active_role_zh: string; created_at: string; updated_at: string; expires_at: string;
+  final: AgentFinal | null; conversation: { role: "user" | "assistant"; content: string }[]; pending_actions: AgentPending[]; steps: AgentStep[];
+  usage: { rounds: number; tool_calls: number; tokens_used: number; limits: { max_rounds: number; max_tool_calls: number; max_seconds: number; max_tokens: number } };
+  termination_reason: string | null; error_code: string | null; audit_complete: boolean; audit_note: string | null; replayed?: boolean;
+}
+export interface AgentTaskRow { task_id: string; status: AgentStatus; created_at: string; updated_at: string; preview: string }
+export interface AgentTrace {
+  task_id: string; status: AgentStatus; audit_complete: boolean; verdict_source: string; content_policy: string;
+  steps: (AgentStep & { request_id: string | null; operator: string; content_sha256: string | null; tokens: number | null })[];
+  http_audit: { request_id: string; ts: string; feature: string; operator: string; status_code: number; agent_task_id: string | null }[];
+}

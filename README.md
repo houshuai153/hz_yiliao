@@ -14,6 +14,7 @@
 | 报告草稿与审核 | 生成草稿 → 在线预览、人工审核（修订、意见、版本）→ 审核通过后才能导出 DOCX；每条结论附事实来源标签，缺值显示 `[待补充: 字段]` | `POST /api/reports/draft`、`/api/reports/{id}/transition`、`/download`（仅审核通过） |
 | 项目看板 | 样本数、分析批进度、QC / ISR 结果、未关闭偏差、报告里程碑、风险提示 | `GET /api/dashboard/*`、Streamlit 页面 |
 | 审计 | 每次 API 调用写入审计表与按天 JSONL | `GET /api/audit` |
+| Agent 对话（需启用大模型） | 总控 + 数据 / 审核 / 问答 / 翻译 / 报告专家；各角色工具权限不同；写操作须用户独立确认；不能审核通过；判定由规则填入；逐步审计（仅哈希） | `/agent` 页、`/api/agent/*`（仅浏览器会话；SPEC 第 14 节） |
 
 ## 1. 环境准备（全新环境，需联网，仅此一步）
 要求 Python 3.11+（按 3.12 验证）。下面以 Windows 的 Git Bash 为例；Linux / macOS 把 `.venv/Scripts/python.exe` 换成 `.venv/bin/python`。
@@ -82,6 +83,7 @@ docker run --rm caddy:2-alpine caddy hash-password          # 生成 BASIC_AUTH_
 docker compose config                                       # 先静态校验；缺少必填密钥会直接报错
 docker compose up -d --build
 ```
+- **启用在线大模型 / Agent（可选）**：默认部署完全离线。需要时叠加受控出网：`docker compose -f docker-compose.yml -f docker-compose.llm.yml up -d --build`（`.env` 里设置 `LLM_API_KEY`）。api 只能经 Squid 代理访问 `api.deepseek.com:443`，其它一律拒绝；详见 SPEC 第 14 节。
 - 构建镜像与拉取基础镜像需要联网（准备步骤）；容器运行后不需要外网。
 - `DOMAIN` 设为解析到该服务器的公网域名时，Caddy 自动申请证书（需 80/443 对公网开放）；`localhost` 时用本地自签证书。
 - `API` 容器启动时会运行幂等的 `init_data.py`（种子数据全部是模拟数据）。
@@ -96,7 +98,7 @@ docker compose up -d --build
 
 ## 目录
 ```
-app/        后端：api/ audit/ db/ kb/ regulatory/ translation/ rules/ llm/ reports/ dashboard/ evaluation/
+app/        后端：api/ audit/ db/ kb/ regulatory/ translation/ rules/ llm/ reports/ dashboard/ evaluation/ agent/
 web/        React + TypeScript 前端（Vite；构建产物由 FastAPI 同源托管）
 legacy/     已被替换的旧 Streamlit 前端（不再维护）
 config/     规则集、术语表与句型、评测配置（业务术语与阈值在这里，不在代码里）

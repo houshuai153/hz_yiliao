@@ -83,6 +83,11 @@ def current_session(request: Request) -> SessionInfo | None:
         return SessionInfo(row.username, row.csrf_token)
 
 
+def session_key_of(request: Request) -> str | None:
+    """当前登录会话的标识（Cookie 的 SHA-256）；Bearer 调用返回 None。用于把待确认动作绑定到会话。"""
+    return getattr(request.state, "session_key", None)
+
+
 def operator_name(request: Request) -> str | None:
     """已登录会话的用户名（客户端无法伪造）；Bearer 调用返回 None。"""
     return getattr(request.state, "user", None)
@@ -99,6 +104,14 @@ async def require_token(request: Request) -> None:
             request.headers.get("X-CSRF-Token", ""), sess.csrf_token):
         raise HTTPException(status_code=403, detail="missing or invalid CSRF token")
     request.state.user = sess.username
+    request.state.session_key = _hash_id(request.cookies[COOKIE])
+
+
+async def require_agent_session(request: Request) -> None:
+    """Agent 只接受浏览器登录会话：静态 Bearer 令牌即使有效也没有操作人，不允许使用 Agent。（须排在 require_token 之后）"""
+    if not operator_name(request) or not session_key_of(request):
+        raise HTTPException(status_code=403, detail={"error_code": "session_required",
+                                                      "message": "Agent 只接受浏览器登录会话，不接受静态令牌"})
 
 
 # ---------- 路由 ----------

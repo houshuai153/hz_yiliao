@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.api.agent import router as agent_router
 from app.api.auth import router as auth_router
 from app.api.dashboard import router as dashboard_router
 from app.api.regulatory import router as regulatory_router
@@ -36,6 +37,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(reports_router)
     app.include_router(dashboard_router)
     app.include_router(auth_router)
+    app.include_router(agent_router)
     _mount_web(app, Path(settings.web_dist_dir))
     return app
 

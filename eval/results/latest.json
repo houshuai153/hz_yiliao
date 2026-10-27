@@ -425,7 +425,7 @@
       "cases": [
         {
           "id": "rp-01",
-          "draft_id": "DRAFT-VAL-20261024093515-bde0ec",
+          "draft_id": "DRAFT-VAL-20261027072909-006d8e",
           "docx_integrity": true,
           "source_coverage": [
             20,
@@ -451,7 +451,7 @@
         },
         {
           "id": "rp-02",
-          "draft_id": "DRAFT-SMP-20261024093517-a46a99",
+          "draft_id": "DRAFT-SMP-20261027072910-cf1286",
           "docx_integrity": true,
           "source_coverage": [
             19,
@@ -480,7 +480,7 @@
         },
         {
           "id": "rp-03",
-          "draft_id": "DRAFT-SMP-20261024093520-cf52e8",
+          "draft_id": "DRAFT-SMP-20261027072912-6a4573",
           "docx_integrity": true,
           "source_coverage": [
             23,
@@ -506,7 +506,7 @@
         },
         {
           "id": "rp-04",
-          "draft_id": "DRAFT-SMP-20261024093522-f7825f",
+          "draft_id": "DRAFT-SMP-20261027072914-e9a7ea",
           "docx_integrity": true,
           "source_coverage": [
             11,
@@ -538,7 +538,7 @@
     }
   },
   "overall_passed": true,
-  "generated_at": "2026-10-24T09:35:22+00:00",
+  "generated_at": "2026-10-27T07:29:15+00:00",
   "locked": {
     "case_files": {
       "eval/cases/regulatory_eval.json": "a81f9cf4c46609b8eee37f182456def692cf26c54c5e97151f9964a18b6c094f",

@@ -29,6 +29,7 @@ class AuditContext:
     rule_ids: list[str] = field(default_factory=list)
     refused: bool = False
     draft_id: str | None = None
+    agent_task_id: str | None = None
 
 
 def make_digest(text: str) -> str:
@@ -64,6 +65,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
             rule_ids=ctx.rule_ids,
             refused=ctx.refused,
             draft_id=ctx.draft_id,
+            agent_task_id=ctx.agent_task_id,
             status_code=status,
             latency_ms=latency_ms,
         )
@@ -82,7 +84,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
             "request_id": row.request_id, "ts": now.isoformat(), "feature": row.feature,
             "operator": row.operator, "input_digest": row.input_digest,
             "section_ids": row.section_ids, "rule_ids": row.rule_ids,
-            "refused": row.refused, "draft_id": row.draft_id,
+            "refused": row.refused, "draft_id": row.draft_id, "agent_task_id": row.agent_task_id,
             "status_code": row.status_code, "latency_ms": row.latency_ms,
         }
         with open(path / f"audit-{now:%Y%m%d}.jsonl", "a", encoding="utf-8") as fh:

@@ -26,3 +26,14 @@ export const useVersions = (id: string | undefined, enabled = true) => useQuery(
 export const useEvents = (id: string | undefined, enabled = true) => useQuery({ queryKey: ["events", id], enabled: !!id && enabled, queryFn: () => api<EventRow[]>(`/api/reports/${id}/events`) });
 
 export const ask = (question: string) => api<AskResult>("/api/regulatory/ask", { method: "POST", body: { question } });
+
+import type { AgentTask, AgentTaskRow, AgentTrace } from "./types";
+export const useAgentTask = (id: string | undefined) => useQuery({
+  queryKey: ["agent-task", id], enabled: !!id, staleTime: 2_000,
+  queryFn: () => api<AgentTask>(`/api/agent/tasks/${id}`),
+  refetchInterval: (q) => (q.state.data?.status === "running" ? 2_000 : false),      // 别处（或已停止等待的请求）仍在处理时轮询
+});
+export const useAgentTasks = (enabled = true) => useQuery({ queryKey: ["agent-tasks"], enabled, queryFn: () => api<AgentTaskRow[]>("/api/agent/tasks"), staleTime: 5_000 });
+export const useAgentTrace = (id: string | undefined, enabled: boolean) => useQuery({
+  queryKey: ["agent-trace", id], enabled: !!id && enabled, queryFn: () => api<AgentTrace>(`/api/agent/tasks/${id}/trace`),
+});
